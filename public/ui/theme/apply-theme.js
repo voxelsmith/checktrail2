@@ -66,6 +66,35 @@
       if (label && typeof node.label === "string") label.textContent = node.label;
       if (input && typeof node.placeholder === "string") input.setAttribute("placeholder", node.placeholder);
     }
+    if (node.align) {
+      el.style.textAlign = node.align;
+      if (type === "button") {
+        el.style.justifyContent = node.align === "left" ? "flex-start" : node.align === "right" ? "flex-end" : "center";
+      }
+      if (type === "text" || type === "image") {
+        if (node.align === "center") {
+          el.style.marginLeft = "auto";
+          el.style.marginRight = "auto";
+        } else if (node.align === "right") {
+          el.style.marginLeft = "auto";
+          el.style.marginRight = "0";
+        } else {
+          el.style.marginLeft = "0";
+          el.style.marginRight = "auto";
+        }
+        var display = window.getComputedStyle(el).display;
+        if (display === "inline" || display === "inline-block") {
+          el.style.display = "block";
+          el.style.width = "fit-content";
+          el.style.maxWidth = "100%";
+        }
+      }
+      if (type === "field") {
+        var alignInput = el.matches("input, textarea") ? el : el.querySelector("input, textarea");
+        if (alignInput) alignInput.style.textAlign = node.align;
+        if (label) label.style.textAlign = node.align;
+      }
+    }
     if (type === "text" || type === "field") return;
     var radius = radiusCss(node);
     if (radius) el.style.borderRadius = radius;

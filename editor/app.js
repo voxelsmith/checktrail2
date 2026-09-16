@@ -37,6 +37,11 @@ const CLIPS = {
 const DEFAULT_CLIP = "polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0 50%)";
 const SHAPE_CLASSES = ["pill", "rounded", "square", "circle", "hex", "diamond", "blob", "star", "triangle", "rect"];
 const HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+const ALIGNS = [
+  ["left", "Left", '<path d="M6 8h20M6 16h14M6 24h20"/>'],
+  ["center", "Center", '<path d="M6 8h20M10 16h12M6 24h20"/>'],
+  ["right", "Right", '<path d="M6 8h20M12 16h14M6 24h20"/>'],
+];
 
 const SCREENS = [
   { id: "hub", group: "Hub", label: "Pick a category", nodes: [
@@ -531,6 +536,48 @@ function shapeButtons(current, scope) {
   ).join("")}</div>`;
 }
 
+function alignButtons(current) {
+  return `<div class="row align-row">${ALIGNS.map(([id, label, icon]) =>
+    `<button type="button" data-align="${id}" class="align-btn${(current || "left") === id ? " active" : ""}" title="${label}">
+      <svg viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">${icon}</svg>
+      <span>${label}</span>
+    </button>`
+  ).join("")}</div>`;
+}
+
+function applyAlign(el, n, type) {
+  const align = n.align;
+  if (!align) return;
+  el.style.textAlign = align;
+  if (type === "button") {
+    el.style.justifyContent = align === "left" ? "flex-start" : align === "right" ? "flex-end" : "center";
+  }
+  if (type === "text" || type === "image") {
+    if (align === "center") {
+      el.style.marginLeft = "auto";
+      el.style.marginRight = "auto";
+    } else if (align === "right") {
+      el.style.marginLeft = "auto";
+      el.style.marginRight = "0";
+    } else {
+      el.style.marginLeft = "0";
+      el.style.marginRight = "auto";
+    }
+    const display = window.getComputedStyle(el).display;
+    if (display === "inline" || display === "inline-block") {
+      el.style.display = "block";
+      el.style.width = "fit-content";
+      el.style.maxWidth = "100%";
+    }
+  }
+  if (type === "field") {
+    const input = el.matches("input, textarea") ? el : el.querySelector("input, textarea");
+    if (input) input.style.textAlign = align;
+    const label = el.querySelector("span");
+    if (label) label.style.textAlign = align;
+  }
+}
+
 function clipField(n, id) {
   if (n.shape !== "custom") return "";
   return `<div class="field"><span>Custom clip-path</span><textarea id="${id}">${n.clipPath || DEFAULT_CLIP}</textarea>
@@ -598,6 +645,7 @@ function renderInspector() {
       <p class="group">Selected · ${meta[1]}</p>
       ${type === "text" || type === "button" ? `<div class="field"><span>Text</span><textarea id="node-text">${n.text || ""}</textarea></div>` : ""}
       ${type === "field" ? `<div class="field"><span>Placeholder</span><input id="node-placeholder" value="${n.placeholder || ""}"></div>` : ""}
+      ${type === "text" || type === "field" || type === "button" || type === "image" ? `<div class="field"><span>Align</span>${alignButtons(n.align)}</div>` : ""}
       ${type === "button" || type === "image" || type === "screen" ? `<div class="field"><span>Shape</span>${shapeButtons(n.shape || g.buttonShape, "node")}</div>` : ""}
       ${type === "button" || type === "image" || type === "screen" ? clipField(n, "node-clip") : ""}
       ${type === "button" || type === "image" || type === "screen" ? slider("node-radius", "Corner radius", 0, 80, n.radius ?? 16) : ""}
@@ -625,6 +673,7 @@ function applyVisualsToPhone() {
     const type = el.getAttribute("data-ui-type") || "text";
     const n = node(id);
     if (n.color) el.style.color = n.color;
+    applyAlign(el, n, type);
     if (type === "text" || type === "field") {
       el.classList.toggle("selected", !selectedOverlay && id === selectedId);
       return;
@@ -714,6 +763,9 @@ function bind() {
   });
   document.querySelectorAll("[data-style]").forEach((btn) => {
     btn.onclick = () => patchGlobal({ buttonStyle: btn.getAttribute("data-style") });
+  });
+  document.querySelectorAll("[data-align]").forEach((btn) => {
+    btn.onclick = () => patchNode({ align: btn.getAttribute("data-align") }, true);
   });
   document.querySelectorAll("[data-local-shape]").forEach((btn) => {
     btn.onclick = () => {
