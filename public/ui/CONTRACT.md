@@ -25,8 +25,8 @@ Required DOM ids / hooks. Renaming these breaks the game until `/public/logic` i
 
 ### Finals
 - `finalist-a-name`, `finalist-b-name`, `finalist-a-score`, `finalist-b-score`
-- `buzzer-a`, `buzzer-b`, `finals-timer`, `finals-question`, `finals-phase-label`, `finals-controls`
-- Dynamic: `btn-correct`, `btn-wrong`
+- `buzzer-main`, `buzzer-hint`, `finals-timer`, `finals-question`, `finals-phase-label`, `finals-controls`
+- Dynamic under the buzzer (`#finals-controls`): `btn-confirm-answered`
 
 ### End / chrome
 - `end-title`, `end-sub`, `reveal-panel`, `reveal-list`, `standings`, `btn-play-again`
