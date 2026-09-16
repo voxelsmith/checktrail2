@@ -631,15 +631,15 @@
     const step = yMax <= 8 ? 2 : Math.ceil(yMax / 4);
 
     // background
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#fff8e7";
     ctx.fillRect(0, 0, cssW, cssH);
 
     // grid + y labels
-    ctx.strokeStyle = "#3a3a3a";
+    ctx.strokeStyle = "#f0c040";
     ctx.setLineDash([4, 5]);
     ctx.lineWidth = 1;
-    ctx.fillStyle = "#9a9a9a";
-    ctx.font = "12px Outfit, sans-serif";
+    ctx.fillStyle = "#7a5530";
+    ctx.font = "700 12px Nunito, Outfit, sans-serif";
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
     for (let y = 0; y <= yMax; y += step) {
@@ -662,12 +662,12 @@
       const y = padT + plotH - h;
       const r = 10;
 
-      ctx.fillStyle = "#355f9c";
+      ctx.fillStyle = "#2e8fff";
       roundTopRect(ctx, x, y, barW, h, r);
       ctx.fill();
 
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "13px Outfit, sans-serif";
+      ctx.fillStyle = "#3a2108";
+      ctx.font = "800 13px Nunito, Outfit, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.fillText(s.name.slice(0, 12), x + barW / 2, padT + plotH + 10);

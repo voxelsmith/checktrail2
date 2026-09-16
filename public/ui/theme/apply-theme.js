@@ -198,8 +198,11 @@
     setClass("ui-shape-", global.buttonShape, ["pill", "rounded", "square", "circle", "hex", "diamond", "blob", "star", "triangle", "rect"]);
     setClass("ui-style-", global.buttonStyle, ["fill", "outline", "soft", "image"]);
     if (global.accent) html.style.setProperty("--lime", global.accent);
+    if (global.accent) html.style.setProperty("--accent", global.accent);
+    if (global.accent) html.style.setProperty("--gold", global.accent);
     if (global.accent) html.style.setProperty("--btn-primary-bg", global.accent);
     if (global.accentInk) html.style.setProperty("--lime-ink", global.accentInk);
+    if (global.accentInk) html.style.setProperty("--accent-ink", global.accentInk);
     if (global.accentInk) html.style.setProperty("--btn-primary-color", global.accentInk);
     if (global.text) html.style.setProperty("--text", global.text);
     if (global.muted) html.style.setProperty("--muted", global.muted);

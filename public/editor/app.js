@@ -135,6 +135,7 @@ const SCREENS = [
 ];
 
 const PRESETS = {
+  arena: { accent: "#ffd24a", accentInk: "#3a2108", bg: "#3ec8ff", text: "#3a2108", muted: "#7a5530", panel: "#fff6dc", buttonShape: "rounded", buttonStyle: "fill" },
   lime: { accent: "#c8f542", accentInk: "#102000", bg: "#071018", text: "#e8f4ff", muted: "#8aa3b5", panel: "#122433", buttonShape: "pill", buttonStyle: "fill" },
   blue: { accent: "#4d7dff", accentInk: "#071018", bg: "#05070b", text: "#eef2f7", muted: "#8b93a7", panel: "#12151c", buttonShape: "pill", buttonStyle: "fill" },
   coral: { accent: "#ff5a4a", accentInk: "#fff8f6", bg: "#14080a", text: "#ffece8", muted: "#c49b96", panel: "#2a1214", buttonShape: "rounded", buttonStyle: "fill" },
@@ -194,7 +195,7 @@ const DEFAULTS = {
 function defaultTheme() {
   return {
     version: 2,
-    global: { ...PRESETS.lime },
+    global: { ...PRESETS.arena },
     nodes: {},
     overlays: {},
   };

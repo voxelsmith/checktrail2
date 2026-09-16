@@ -9,7 +9,7 @@ export default function Page() {
   return (
     <>
       <link
-        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&family=Bebas+Neue&family=Outfit:wght@400;600;700&display=swap"
         rel="stylesheet"
       />
       <link href="/ui/hub/hub.css" rel="stylesheet" />

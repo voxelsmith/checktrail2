@@ -1,13 +1,13 @@
 {
   "version": 2,
   "global": {
-    "accent": "#c8f542",
-    "accentInk": "#102000",
-    "bg": "#071018",
-    "text": "#e8f4ff",
-    "muted": "#8aa3b5",
-    "panel": "#122433",
-    "buttonShape": "pill",
+    "accent": "#ffd24a",
+    "accentInk": "#3a2108",
+    "bg": "#3ec8ff",
+    "text": "#3a2108",
+    "muted": "#7a5530",
+    "panel": "#fff6dc",
+    "buttonShape": "rounded",
     "buttonStyle": "fill"
   },
   "nodes": {},
