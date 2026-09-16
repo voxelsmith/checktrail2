@@ -349,18 +349,51 @@ function screenStyle(id) {
   return `background:${background};color:${theme.global.text};--bg:${theme.global.bg};--text:${theme.global.text};--muted:${theme.global.muted};--accent:${theme.global.accent};--accent-ink:${theme.global.accentInk};--panel:${theme.global.panel};`;
 }
 
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[ch]));
+}
+
+function overlayName(ov) {
+  if (ov.kind === "text") return "Text · " + (ov.text || "New text").slice(0, 18);
+  if (ov.kind === "image") return "Image";
+  if (ov.kind === "sprite") return "Sprite";
+  return "Shape";
+}
+
+function overlayVisualCss(ov) {
+  if (ov.kind === "text") {
+    const align = ov.align || "left";
+    const justify = align === "right" ? "flex-end" : align === "center" ? "center" : "flex-start";
+    return `background:transparent;color:${ov.color || theme.global.text};font-size:${ov.fontSize || 24}px;text-align:${align};justify-content:${justify};`;
+  }
+  if (ov.kind === "image") return ov.image ? imageCss(ov) : "";
+  if (ov.kind === "sprite") return spriteStyle(ov);
+  if (ov.image) return imageCss(ov);
+  return `background:${ov.fill || theme.global.accent}`;
+}
+
 function overlayHtml() {
   return overlays().map((ov) => {
     const selected = selectedOverlay === ov.id ? " selected" : "";
     const shape = ov.shape || "rect";
     const clip = clipCss(ov);
-    const radius = shape === "circle" || shape === "pill" ? "999px" : (ov.radius ?? 12) + "px";
-    const extra = ov.kind === "sprite" ? spriteStyle(ov) : ov.image ? imageCss(ov) : `background:${ov.fill || theme.global.accent}`;
+    const radius = ov.kind === "text" ? "0px" : shape === "circle" || shape === "pill" ? "999px" : (ov.radius ?? 12) + "px";
+    const extra = overlayVisualCss(ov);
     const handles = selectedOverlay === ov.id
       ? HANDLES.map((h) => `<span class="ov-handle" data-handle="${h}"></span>`).join("")
       : "";
+    const inner = ov.kind === "text"
+      ? escapeHtml(ov.text || "New text")
+      : ov.kind === "image" && !ov.image ? "Image" : "";
+    const klass = ov.kind === "text" ? " overlay-text" : ov.kind === "image" && !ov.image ? " overlay-image-empty" : "";
     return `<div class="overlay-wrap${selected}" data-overlay="${ov.id}" style="left:${ov.x}%;top:${ov.y}%;width:${ov.w}px;height:${ov.h}px;opacity:${(ov.opacity ?? 100) / 100}">
-      <div class="overlay-visual" style="border-radius:${radius};${clip ? `clip-path:${clip};` : ""}${extra}"></div>
+      <div class="overlay-visual${klass}" style="border-radius:${radius};${clip ? `clip-path:${clip};` : ""}${extra}">${inner}</div>
       ${handles}
     </div>`;
   }).join("");
@@ -504,26 +537,63 @@ function slider(id, label, min, max, value, step) {
   return `<div class="field"><span>${label}</span><div class="slider"><input type="range" id="${id}" min="${min}" max="${max}" step="${step || 1}" value="${value}"><output>${value}</output></div></div>`;
 }
 
+function currentScreen() {
+  return SCREENS.find((s) => s.id === screenId);
+}
+
+function isHidden(id) {
+  return !!node(id).hidden;
+}
+
+function layerRow(id, label, opts) {
+  const active = opts.active ? " active" : "";
+  const hidden = opts.hidden ? " hidden-layer" : "";
+  const selectAttr = opts.overlay
+    ? `data-overlay-layer="${id}"`
+    : opts.hidden
+      ? `data-restore-node="${id}"`
+      : `data-node="${id}"`;
+  const del = opts.canDelete
+    ? `<button type="button" class="layer-del" ${opts.overlay ? `data-delete-overlay="${id}"` : `data-delete-node="${id}"`} title="Delete layer">×</button>`
+    : `<span></span>`;
+  const restore = opts.hidden
+    ? `<button type="button" class="layer-del" data-restore-node="${id}" title="Restore layer">↺</button>`
+    : del;
+  return `<div class="layer-row"><button class="layer-btn${active}${hidden}" ${selectAttr}>${label}</button>${restore}</div>`;
+}
+
 function renderPages() {
   let last = "";
-  const overlayBtns = overlays().map((ov) =>
-    `<button class="layer-btn${selectedOverlay === ov.id ? " active" : ""}" data-overlay-layer="${ov.id}">${ov.kind === "sprite" ? "Sprite" : "Shape"} ${ov.shape || ""}</button>`
+  const screen = currentScreen();
+  const visible = screen.nodes.filter(([id, , type]) => type === "screen" || !isHidden(id));
+  const hidden = screen.nodes.filter(([id, , type]) => type !== "screen" && isHidden(id));
+  const overlayRows = overlays().map((ov) =>
+    layerRow(ov.id, overlayName(ov), { overlay: true, active: selectedOverlay === ov.id, canDelete: true })
   ).join("");
-  document.getElementById("pages").innerHTML = SCREENS.map((screen) => {
-    const group = screen.group !== last ? `<p class="group">${screen.group}</p>` : "";
-    last = screen.group;
-    return `${group}<button class="page-btn${screen.id === screenId ? " active" : ""}" data-screen="${screen.id}">${screen.label}</button>`;
+  document.getElementById("pages").innerHTML = SCREENS.map((item) => {
+    const group = item.group !== last ? `<p class="group">${item.group}</p>` : "";
+    last = item.group;
+    return `${group}<button class="page-btn${item.id === screenId ? " active" : ""}" data-screen="${item.id}">${item.label}</button>`;
   }).join("") +
     `<p class="group">Layers</p>` +
-    SCREENS.find((s) => s.id === screenId).nodes.map((n) =>
-      `<button class="layer-btn${!selectedOverlay && n[0] === selectedId ? " active" : ""}" data-node="${n[0]}">${n[1]}</button>`
+    visible.map(([id, label, type]) =>
+      layerRow(id, label, {
+        active: !selectedOverlay && id === selectedId,
+        canDelete: type !== "screen",
+      })
     ).join("") +
-    `<p class="group">Shapes & sprites</p>` +
-    overlayBtns +
+    overlayRows +
     `<div class="row" style="margin-top:8px">
+      <button type="button" id="add-text">Add text</button>
+      <button type="button" id="add-image">Add image</button>
+    </div>
+    <div class="row">
       <button type="button" id="add-shape">Add shape</button>
       <button type="button" id="add-sprite">Add sprite</button>
-    </div>`;
+    </div>` +
+    (hidden.length ? `<p class="group">Hidden</p>` + hidden.map(([id, label]) =>
+      layerRow(id, label, { hidden: true, active: false, canDelete: false })
+    ).join("") : "");
 }
 
 function shapeButtons(current, scope) {
@@ -617,25 +687,41 @@ function renderInspector() {
     </div></div>`;
 
   if (overlay) {
+    body += `<p class="group">Selected · ${overlayName(overlay)}</p>`;
+    if (overlay.kind === "text") {
+      body += `
+        <div class="field"><span>Text</span><textarea id="ov-text">${overlay.text || ""}</textarea></div>
+        <div class="field"><span>Align</span>${alignButtons(overlay.align)}</div>
+        ${slider("ov-fontsize", "Size", 12, 72, overlay.fontSize || 24)}
+        <div class="field"><span>Color</span><div class="color"><input type="color" id="ov-color" value="${overlay.color || g.text}"></div></div>
+        ${slider("ov-w", "Width", 40, 360, overlay.w || 220)}
+        ${slider("ov-h", "Height", 24, 240, overlay.h || 52)}`;
+    } else if (overlay.kind === "image") {
+      body += `
+        ${slider("ov-w", "Width", 40, 360, overlay.w || 168)}
+        ${slider("ov-h", "Height", 40, 360, overlay.h || 112)}
+        ${imageControls(overlay, "ov")}`;
+    } else {
+      body += `
+        ${overlay.kind === "shape" ? `<div class="field"><span>Shape</span>${shapeButtons(overlay.shape || "rect", "overlay")}</div>` : ""}
+        ${clipField(overlay, "ov-clip")}
+        <div class="field"><span>Fill</span><div class="color"><input type="color" id="ov-fill" value="${overlay.fill || g.accent}"></div></div>
+        ${slider("ov-w", "Width", 24, 320, overlay.w || 80)}
+        ${slider("ov-h", "Height", 24, 320, overlay.h || 80)}
+        ${slider("ov-radius", "Corner radius", 0, 160, overlay.radius ?? 12)}
+        ${overlay.kind === "sprite" ? slider("ov-opacity", "Opacity", 10, 100, overlay.opacity ?? 100) : ""}
+        ${overlay.kind === "sprite" ? `
+          <p class="group">Sprite animation</p>
+          <div class="field"><span>Sprite sheet or GIF</span><input type="file" id="ov-sprite" accept="image/*"></div>
+          ${slider("ov-frames", "Frames", 1, 24, overlay.frames || 4)}
+          ${slider("ov-fps", "FPS", 1, 24, overlay.fps || 8)}
+          <p class="hint">GIF/WebP plays as-is. A horizontal PNG strip uses Frames + FPS like a game sprite sheet.</p>
+        ` : ""}
+        ${overlay.kind === "shape" || (overlay.image && overlay.kind !== "sprite") ? imageControls(overlay, "ov") : ""}`;
+    }
     body += `
-      <p class="group">Selected · ${overlay.kind} overlay</p>
-      ${overlay.kind === "shape" ? `<div class="field"><span>Shape</span>${shapeButtons(overlay.shape || "rect", "overlay")}</div>` : ""}
-      ${clipField(overlay, "ov-clip")}
-      <div class="field"><span>Fill</span><div class="color"><input type="color" id="ov-fill" value="${overlay.fill || g.accent}"></div></div>
-      ${slider("ov-w", "Width", 24, 320, overlay.w || 80)}
-      ${slider("ov-h", "Height", 24, 320, overlay.h || 80)}
-      ${slider("ov-radius", "Corner radius", 0, 160, overlay.radius ?? 12)}
-      ${overlay.kind === "sprite" ? slider("ov-opacity", "Opacity", 10, 100, overlay.opacity ?? 100) : ""}
-      ${overlay.kind === "sprite" ? `
-        <p class="group">Sprite animation</p>
-        <div class="field"><span>Sprite sheet or GIF</span><input type="file" id="ov-sprite" accept="image/*"></div>
-        ${slider("ov-frames", "Frames", 1, 24, overlay.frames || 4)}
-        ${slider("ov-fps", "FPS", 1, 24, overlay.fps || 8)}
-        <p class="hint">GIF/WebP plays as-is. A horizontal PNG strip uses Frames + FPS like a game sprite sheet.</p>
-      ` : ""}
-      ${overlay.kind === "shape" || (overlay.image && overlay.kind !== "sprite") ? imageControls(overlay, "ov") : ""}
-      <button type="button" id="ov-delete">Delete overlay</button>
-      <p class="hint">Drag the shape on the phone to move it. Blue handles resize it.</p>`;
+      <button type="button" id="ov-delete" class="danger">Delete layer</button>
+      <p class="hint">Drag the layer on the phone to move it. Blue handles resize it.</p>`;
   } else {
     const meta = selectedMeta();
     selectedId = meta[0];
@@ -660,7 +746,8 @@ function renderInspector() {
       <div class="field"><span>Text color</span><div class="color"><input type="color" id="node-color" value="${n.color || g.text}"></div></div>
       ${type === "button" || type === "screen" ? `<div class="field"><span>Fill color</span><div class="color"><input type="color" id="node-bg" value="${n.bg || g.accent}"></div></div>` : ""}
       ${type === "image" || type === "screen" || type === "button" ? imageControls(n, "node") : ""}
-      ${type === "button" ? `<label class="check"><input type="checkbox" id="node-shadow" ${n.shadow ? "checked" : ""}> Drop shadow</label>` : ""}`;
+      ${type === "button" ? `<label class="check"><input type="checkbox" id="node-shadow" ${n.shadow ? "checked" : ""}> Drop shadow</label>` : ""}
+      ${type !== "screen" ? `<button type="button" id="node-delete" class="danger">Delete layer</button>` : ""}`;
   }
 
   body += `<p class="hint">Export downloads theme.json into the game folder. This editor stays a separate Chrome app.</p>`;
@@ -672,6 +759,10 @@ function applyVisualsToPhone() {
     const id = el.getAttribute("data-ui");
     const type = el.getAttribute("data-ui-type") || "text";
     const n = node(id);
+    if (n.hidden) {
+      el.style.display = "none";
+      return;
+    }
     if (n.color) el.style.color = n.color;
     applyAlign(el, n, type);
     if (type === "text" || type === "field") {
@@ -765,7 +856,11 @@ function bind() {
     btn.onclick = () => patchGlobal({ buttonStyle: btn.getAttribute("data-style") });
   });
   document.querySelectorAll("[data-align]").forEach((btn) => {
-    btn.onclick = () => patchNode({ align: btn.getAttribute("data-align") }, true);
+    btn.onclick = () => {
+      const align = btn.getAttribute("data-align");
+      if (selectedOverlay) patchOverlay({ align }, true);
+      else patchNode({ align }, true);
+    };
   });
   document.querySelectorAll("[data-local-shape]").forEach((btn) => {
     btn.onclick = () => {
@@ -785,6 +880,28 @@ function bind() {
   if (addShape) addShape.onclick = () => addOverlay("shape");
   const addSprite = document.getElementById("add-sprite");
   if (addSprite) addSprite.onclick = () => addOverlay("sprite");
+  const addText = document.getElementById("add-text");
+  if (addText) addText.onclick = () => addOverlay("text");
+  const addImage = document.getElementById("add-image");
+  if (addImage) addImage.onclick = () => addOverlay("image");
+  document.querySelectorAll("[data-delete-node]").forEach((btn) => {
+    btn.onclick = (event) => {
+      event.stopPropagation();
+      hideNode(btn.getAttribute("data-delete-node"));
+    };
+  });
+  document.querySelectorAll("[data-delete-overlay]").forEach((btn) => {
+    btn.onclick = (event) => {
+      event.stopPropagation();
+      deleteOverlay(btn.getAttribute("data-delete-overlay"));
+    };
+  });
+  document.querySelectorAll("[data-restore-node]").forEach((btn) => {
+    btn.onclick = (event) => {
+      event.stopPropagation();
+      restoreNode(btn.getAttribute("data-restore-node"));
+    };
+  });
 
   const text = document.getElementById("node-text");
   if (text) text.oninput = () => patchNode({ text: text.value });
@@ -811,6 +928,11 @@ function bind() {
 
   const overlay = overlays().find((item) => item.id === selectedOverlay);
   if (overlay) {
+    const ovText = document.getElementById("ov-text");
+    if (ovText) ovText.oninput = () => patchOverlay({ text: ovText.value });
+    const ovColor = document.getElementById("ov-color");
+    if (ovColor) ovColor.oninput = () => patchOverlay({ color: ovColor.value });
+    liveSlider("ov-fontsize", "fontSize", overlay);
     const fill = document.getElementById("ov-fill");
     if (fill) fill.oninput = () => patchOverlay({ fill: fill.value });
     liveSlider("ov-w", "w", overlay);
@@ -828,13 +950,10 @@ function bind() {
     if (ovClip) ovClip.oninput = () => patchOverlay({ clipPath: ovClip.value, shape: "custom" });
     bindImageControls("ov", overlay);
     const del = document.getElementById("ov-delete");
-    if (del) del.onclick = () => {
-      theme = { ...theme, overlays: { ...theme.overlays, [screenId]: overlays().filter((item) => item.id !== selectedOverlay) } };
-      selectedOverlay = null;
-      save();
-      render();
-    };
+    if (del) del.onclick = () => deleteOverlay(selectedOverlay);
   }
+  const nodeDelete = document.getElementById("node-delete");
+  if (nodeDelete) nodeDelete.onclick = () => hideNode(selectedId);
 }
 
 function bindPhone() {
@@ -963,24 +1082,74 @@ function defaultSpriteSheet() {
   return canvas.toDataURL("image/png");
 }
 
+function hideNode(id) {
+  const meta = currentScreen().nodes.find((item) => item[0] === id);
+  if (!meta || meta[2] === "screen") return;
+  history.push(JSON.parse(JSON.stringify(theme)));
+  if (history.length > 30) history.shift();
+  theme = { ...theme, nodes: { ...theme.nodes, [id]: { ...node(id), hidden: true } } };
+  selectedOverlay = null;
+  selectedId = currentScreen().nodes.find((item) => item[2] === "screen" || !node(item[0]).hidden)[0];
+  save();
+  render();
+}
+
+function restoreNode(id) {
+  history.push(JSON.parse(JSON.stringify(theme)));
+  if (history.length > 30) history.shift();
+  const next = { ...node(id) };
+  delete next.hidden;
+  theme = { ...theme, nodes: { ...theme.nodes, [id]: next } };
+  selectedOverlay = null;
+  selectedId = id;
+  save();
+  render();
+}
+
+function deleteOverlay(id) {
+  history.push(JSON.parse(JSON.stringify(theme)));
+  if (history.length > 30) history.shift();
+  theme = { ...theme, overlays: { ...theme.overlays, [screenId]: overlays().filter((item) => item.id !== id) } };
+  selectedOverlay = null;
+  save();
+  render();
+}
+
 function addOverlay(kind) {
   const existing = overlays();
   const item = {
     id: "ov" + Date.now(),
     kind,
-    shape: kind === "sprite" ? "rect" : "circle",
-    x: 8 + (existing.length % 3) * 22,
-    y: 78 + Math.floor(existing.length / 3) * 10,
-    w: kind === "sprite" ? 72 : 88,
-    h: kind === "sprite" ? 72 : 88,
-    fill: theme.global.accent,
-    opacity: kind === "shape" ? 70 : 100,
-    frames: 4,
-    fps: 8,
-    radius: kind === "sprite" ? 8 : 999,
-    animated: kind === "sprite" ? "sheet" : "",
-    image: kind === "sprite" ? defaultSpriteSheet() : "",
+    x: 10 + (existing.length % 3) * 8,
+    y: 16 + (existing.length % 5) * 10,
+    opacity: 100,
   };
+  if (kind === "text") {
+    Object.assign(item, {
+      text: "New text",
+      fontSize: 24,
+      color: theme.global.text,
+      align: "left",
+      w: 220,
+      h: 52,
+      radius: 0,
+    });
+  } else if (kind === "image") {
+    Object.assign(item, { w: 168, h: 112, radius: 14, shape: "rounded", image: "" });
+  } else {
+    Object.assign(item, {
+      shape: kind === "sprite" ? "rect" : "circle",
+      w: kind === "sprite" ? 72 : 88,
+      h: kind === "sprite" ? 72 : 88,
+      fill: theme.global.accent,
+      opacity: kind === "shape" ? 70 : 100,
+      frames: 4,
+      fps: 8,
+      radius: kind === "sprite" ? 8 : 999,
+      animated: kind === "sprite" ? "sheet" : "",
+      image: kind === "sprite" ? defaultSpriteSheet() : "",
+    });
+  }
   theme = { ...theme, overlays: { ...theme.overlays, [screenId]: overlays().concat(item) } };
   selectedOverlay = item.id;
   save();

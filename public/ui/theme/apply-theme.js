@@ -49,6 +49,10 @@
 
   function applyNode(el, node) {
     if (!el || !node) return;
+    if (node.hidden) {
+      el.style.display = "none";
+      return;
+    }
     var type = el.getAttribute("data-ui-type") || "text";
     if (node.color) el.style.color = node.color;
     if (type === "text" && typeof node.text === "string") {
@@ -143,7 +147,20 @@
         else el.style.borderRadius = (ov.radius || 12) + "px";
         var clip = clipCss(ov);
         if (clip) el.style.clipPath = clip;
-        if (ov.kind === "sprite" && ov.image) {
+        if (ov.kind === "text") {
+          el.style.background = "transparent";
+          el.style.color = ov.color || "#e8f4ff";
+          el.style.fontSize = (ov.fontSize || 24) + "px";
+          el.style.fontWeight = "700";
+          el.style.textAlign = ov.align || "left";
+          el.style.display = "flex";
+          el.style.alignItems = "center";
+          el.style.justifyContent = ov.align === "right" ? "flex-end" : ov.align === "center" ? "center" : "flex-start";
+          el.style.padding = "4px 8px";
+          el.textContent = ov.text || "";
+        } else if (ov.kind === "image") {
+          if (ov.image) applyImage(el, ov);
+        } else if (ov.kind === "sprite" && ov.image) {
           if (ov.animated === "gif") {
             el.style.background = "url(\"" + ov.image + "\") center / cover no-repeat";
           } else {
