@@ -1,7 +1,7 @@
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open("checktrail-editor-v10").then((cache) =>
+    caches.open("checktrail-editor-v9").then((cache) =>
       cache.addAll(["./", "./index.html", "./styles.css", "./app.js", "./manifest.json", "./icon.svg"])
     )
   );
@@ -10,7 +10,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== "checktrail-editor-v10").map((key) => caches.delete(key)))
+      Promise.all(keys.filter((key) => key !== "checktrail-editor-v9").map((key) => caches.delete(key)))
     ).then(() => self.clients.claim())
   );
 });

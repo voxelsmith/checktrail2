@@ -15,8 +15,8 @@
   --accent-ink: #000;
   --btn-primary-bg: #fff;
   --btn-primary-color: #000;
-  --font-display: "Gruppo", sans-serif;
-  --font-body: "Gruppo", sans-serif;
+  --font-display: "Gochi Hand", "Patrick Hand", cursive;
+  --font-body: "Patrick Hand", "Gochi Hand", cursive;
 }
 
 html,
