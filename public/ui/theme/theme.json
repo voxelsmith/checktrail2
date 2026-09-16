@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "global": {
     "accent": "#c8f542",
     "accentInk": "#102000",
@@ -10,5 +10,6 @@
     "buttonShape": "pill",
     "buttonStyle": "fill"
   },
-  "nodes": {}
+  "nodes": {},
+  "overlays": {}
 }

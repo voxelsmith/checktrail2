@@ -21,8 +21,51 @@ html.ui-shape-rounded {
   --btn-radius: 14px;
 }
 
-html.ui-shape-square {
-  --btn-radius: 6px;
+html.ui-shape-circle {
+  --btn-radius: 999px;
+}
+
+html.ui-shape-rect {
+  --btn-radius: 0;
+}
+
+html.ui-shape-hex .btn,
+html.ui-shape-hex .btn-icon,
+html.ui-shape-hex .hub-card {
+  clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%);
+  border-radius: 0;
+}
+
+html.ui-shape-diamond .btn,
+html.ui-shape-diamond .btn-icon,
+html.ui-shape-diamond .hub-card {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  border-radius: 0;
+}
+
+html.ui-shape-blob .btn,
+html.ui-shape-blob .btn-icon,
+html.ui-shape-blob .hub-card {
+  clip-path: polygon(32% 4%, 70% 8%, 96% 32%, 92% 70%, 64% 96%, 28% 92%, 6% 64%, 8% 28%);
+  border-radius: 0;
+}
+
+html.ui-shape-star .btn,
+html.ui-shape-star .btn-icon,
+html.ui-shape-star .hub-card {
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  border-radius: 0;
+}
+
+html.ui-shape-triangle .btn,
+html.ui-shape-triangle .btn-icon,
+html.ui-shape-triangle .hub-card {
+  clip-path: polygon(50% 0%, 100% 100%, 0 100%);
+  border-radius: 0;
+}
+
+.ui-overlay {
+  pointer-events: none;
 }
 
 html.ui-style-outline .btn-primary {

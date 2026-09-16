@@ -38,7 +38,7 @@ button.primary { background: #0d99ff; border-color: #0d99ff; color: #041018; }
 button.active { background: #0d99ff; border-color: #0d99ff; color: #041018; }
 .body {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 300px;
+  grid-template-columns: 220px minmax(0, 1fr) 340px;
   min-height: 0;
 }
 .side, .inspector {
@@ -113,7 +113,100 @@ button.active { background: #0d99ff; border-color: #0d99ff; color: #041018; }
   padding: 8px;
   font: inherit;
 }
-.field textarea { min-height: 72px; }
+.field textarea { min-height: 64px; }
+.slider {
+  display: grid;
+  grid-template-columns: 1fr 48px;
+  gap: 8px;
+  align-items: center;
+}
+.slider input[type="range"] { width: 100%; }
+.slider output { font-size: 12px; color: #b3b3b3; text-align: right; }
+.corners {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.corners input { width: 100%; }
+.shape-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.shape-btn {
+  min-height: 58px;
+  padding: 6px 4px 4px;
+  font-size: 10px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+.shape-btn svg {
+  width: 26px;
+  height: 26px;
+  fill: currentColor;
+}
+.img-preview {
+  height: 84px;
+  border-radius: 10px;
+  border: 1px solid #444;
+  background: #111 center / cover no-repeat;
+  margin-bottom: 8px;
+}
+.preview-swatch {
+  height: 28px;
+  border: 1px solid #555;
+  background: #222;
+}
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+
+.overlay-wrap {
+  position: absolute;
+  cursor: move;
+}
+.overlay-visual {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.overlay-wrap.selected {
+  outline: 2px solid #0d99ff;
+  outline-offset: 2px;
+}
+.ov-handle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: #fff;
+  border: 1.5px solid #0d99ff;
+  border-radius: 1px;
+  z-index: 4;
+}
+.ov-handle[data-handle="nw"] { left: -5px; top: -5px; cursor: nwse-resize; }
+.ov-handle[data-handle="n"] { left: calc(50% - 5px); top: -5px; cursor: ns-resize; }
+.ov-handle[data-handle="ne"] { right: -5px; top: -5px; cursor: nesw-resize; }
+.ov-handle[data-handle="e"] { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+.ov-handle[data-handle="se"] { right: -5px; bottom: -5px; cursor: nwse-resize; }
+.ov-handle[data-handle="s"] { left: calc(50% - 5px); bottom: -5px; cursor: ns-resize; }
+.ov-handle[data-handle="sw"] { left: -5px; bottom: -5px; cursor: nesw-resize; }
+.ov-handle[data-handle="w"] { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+.phone-ui { position: relative; }
+.sprite-sheet {
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+.img-stage {
+  overflow: hidden;
+  position: relative;
+}
+
+html.ui-shape-circle { --btn-radius: 999px; }
+html.ui-shape-rect { --btn-radius: 0; }
+html.ui-shape-hex .btn, html.ui-shape-hex .ghost, html.ui-shape-hex .card { clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%); border-radius: 0; }
+html.ui-shape-diamond .btn, html.ui-shape-diamond .ghost, html.ui-shape-diamond .card { clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); border-radius: 0; }
+html.ui-shape-blob .btn, html.ui-shape-blob .ghost, html.ui-shape-blob .card { clip-path: polygon(32% 4%, 70% 8%, 96% 32%, 92% 70%, 64% 96%, 28% 92%, 6% 64%, 8% 28%); border-radius: 0; }
+html.ui-shape-star .btn, html.ui-shape-star .ghost, html.ui-shape-star .card { clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border-radius: 0; }
+html.ui-shape-triangle .btn, html.ui-shape-triangle .ghost, html.ui-shape-triangle .card { clip-path: polygon(50% 0%, 100% 100%, 0 100%); border-radius: 0; }
 .color { display: grid; grid-template-columns: 42px 1fr; gap: 8px; align-items: center; }
 .color input[type="color"] { width: 42px; height: 34px; border: 0; background: transparent; padding: 0; }
 

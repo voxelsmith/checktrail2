@@ -1,5 +1,43 @@
 const STORAGE_KEY = "checktrail-editor-theme";
 
+const SHAPES = [
+  ["rect", "Rect"],
+  ["rounded", "Round"],
+  ["pill", "Pill"],
+  ["circle", "Circle"],
+  ["hex", "Hex"],
+  ["diamond", "Diamond"],
+  ["star", "Star"],
+  ["triangle", "Triangle"],
+  ["blob", "Blob"],
+  ["custom", "Custom"],
+];
+
+const SHAPE_ICONS = {
+  rect: '<rect x="5" y="8" width="22" height="16" rx="1"/>',
+  rounded: '<rect x="5" y="8" width="22" height="16" rx="5"/>',
+  pill: '<rect x="3" y="10" width="26" height="12" rx="6"/>',
+  circle: '<circle cx="16" cy="16" r="10"/>',
+  hex: '<polygon points="16,4 27,10.5 27,21.5 16,28 5,21.5 5,10.5"/>',
+  diamond: '<polygon points="16,4 28,16 16,28 4,16"/>',
+  star: '<polygon points="16,3 19.4,12.2 29,12.2 21.3,17.8 24.2,27 16,21.8 7.8,27 10.7,17.8 3,12.2 12.6,12.2"/>',
+  triangle: '<polygon points="16,5 28,26 4,26"/>',
+  blob: '<path d="M11.2 5.4c4.8-2.6 12.2-.8 14.6 4.6 2.6 5.6.4 12.6-4.6 14.8-5.2 2.4-12.4.6-14.8-4.8C4 14.6 6.2 8 11.2 5.4Z"/>',
+  custom: '<path d="M7 9 15 5l11 4-3 13L8 26Z"/>',
+};
+
+const CLIPS = {
+  hex: "polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%)",
+  diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+  star: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)",
+  blob: "polygon(32% 4%, 70% 8%, 96% 32%, 92% 70%, 64% 96%, 28% 92%, 6% 64%, 8% 28%)",
+  triangle: "polygon(50% 0%, 100% 100%, 0% 100%)",
+};
+
+const DEFAULT_CLIP = "polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0 50%)";
+const SHAPE_CLASSES = ["pill", "rounded", "square", "circle", "hex", "diamond", "blob", "star", "triangle", "rect"];
+const HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
+
 const SCREENS = [
   { id: "hub", group: "Hub", label: "Pick a category", nodes: [
     ["hub.screen", "Phone background", "screen"],
@@ -150,9 +188,10 @@ const DEFAULTS = {
 
 function defaultTheme() {
   return {
-    version: 1,
+    version: 2,
     global: { ...PRESETS.lime },
     nodes: {},
+    overlays: {},
   };
 }
 
@@ -160,17 +199,20 @@ let theme = defaultTheme();
 let history = [];
 let screenId = "hub";
 let selectedId = "hub.brand";
+let selectedOverlay = null;
+let drag = null;
 
 function textOf(id) {
-  const node = theme.nodes[id] || {};
-  if (node.text) return node.text;
-  if (node.placeholder) return node.placeholder;
-  if (node.label) return node.label;
-  return DEFAULTS[id] || "";
+  const n = theme.nodes[id] || {};
+  return n.text || n.placeholder || n.label || DEFAULTS[id] || "";
 }
 
 function node(id) {
   return theme.nodes[id] || {};
+}
+
+function overlays() {
+  return theme.overlays[screenId] || [];
 }
 
 function save() {
@@ -189,18 +231,107 @@ function patchGlobal(partial) {
   commit({ ...theme, global: { ...theme.global, ...partial } });
 }
 
-function patchNode(partial) {
+function patchNode(partial, refresh) {
   theme = {
     ...theme,
     nodes: { ...theme.nodes, [selectedId]: { ...node(selectedId), ...partial } },
   };
   save();
-  renderPhone();
+  if (refresh) render();
+  else renderPhone();
+}
+
+function patchOverlay(partial, refresh) {
+  const list = overlays().map((item) => item.id === selectedOverlay ? { ...item, ...partial } : item);
+  theme = { ...theme, overlays: { ...theme.overlays, [screenId]: list } };
+  save();
+  if (refresh) render();
+  else renderPhone();
+}
+
+function radiusCss(n, fallback) {
+  const shape = n.shape || "";
+  if (shape === "pill" || shape === "circle") return "999px";
+  if (shape === "square" || shape === "rect") return (n.radius ?? 0) + "px";
+  if (n.linkCorners === false) {
+    return `${n.tl ?? 16}px ${n.tr ?? 16}px ${n.br ?? 16}px ${n.bl ?? 16}px`;
+  }
+  if (n.radius != null) return n.radius + "px";
+  if (shape === "rounded") return "16px";
+  return fallback || "";
+}
+
+function clipCss(n) {
+  if (!n) return "";
+  if (typeof n === "string") return CLIPS[n] || "";
+  if (n.shape === "custom" && n.clipPath) return n.clipPath;
+  return CLIPS[n.shape] || "";
+}
+
+function imageCss(n) {
+  if (!n.image && !n.sprite) return "";
+  const src = n.image || n.sprite;
+  const fit = n.imageFit || "cover";
+  const x = n.imageX ?? 50;
+  const y = n.imageY ?? 50;
+  const scale = n.imageScale ?? 100;
+  const size = fit === "tile" ? `${scale}px` : fit === "contain" ? `contain` : fit === "fill" ? "100% 100%" : `${scale}% auto`;
+  const repeat = fit === "tile" ? "repeat" : "no-repeat";
+  const flipX = n.flipX ? -1 : 1;
+  const flipY = n.flipY ? -1 : 1;
+  const rot = n.rotate || 0;
+  return [
+    `background-image:url("${src}")`,
+    `background-size:${fit === "cover" ? `${scale}% auto` : size}`,
+    `background-position:${x}% ${y}%`,
+    `background-repeat:${repeat}`,
+    rot || n.flipX || n.flipY ? `transform:rotate(${rot}deg) scale(${flipX}, ${flipY})` : "",
+    n.opacity != null ? `opacity:${n.opacity / 100}` : "",
+  ].filter(Boolean).join(";");
+}
+
+function visualCss(id) {
+  const n = node(id);
+  const g = theme.global;
+  const parts = [];
+  const radius = radiusCss(n, g.buttonShape === "pill" ? "999px" : g.buttonShape === "square" || g.buttonShape === "rect" ? "0px" : "16px");
+  if (radius) parts.push(`border-radius:${radius}`);
+  const clip = clipCss(n);
+  if (clip) parts.push(`clip-path:${clip}`);
+  else if (n.shape) parts.push("clip-path:none");
+  if (n.bg) parts.push(`background:${n.bg}`);
+  if (n.color) parts.push(`color:${n.color}`);
+  if (n.image) parts.push(imageCss(n));
+  if (n.shadow) parts.push("box-shadow:0 10px 24px rgba(0,0,0,.35)");
+  if (clip) parts.push("overflow:hidden");
+  return parts.join(";");
+}
+
+function spriteStyle(ov) {
+  if (ov.animated === "gif") {
+    return `background-image:url("${ov.image}");background-size:cover;background-position:center;`;
+  }
+  const frames = ov.frames || 4;
+  const fps = ov.fps || 8;
+  const name = "sp_" + ov.id.replace(/[^a-z0-9]/gi, "");
+  return `--frames:${frames};animation:${name} ${(frames / fps).toFixed(2)}s steps(${frames}) infinite;background-image:url("${ov.image}");background-size:${frames * 100}% 100%;background-repeat:no-repeat;image-rendering:pixelated;`;
+}
+
+function spriteKeyframes() {
+  return overlays()
+    .filter((ov) => ov.kind === "sprite" && ov.image && ov.animated !== "gif")
+    .map((ov) => {
+      const name = "sp_" + ov.id.replace(/[^a-z0-9]/gi, "");
+      const frames = ov.frames || 4;
+      return `@keyframes ${name}{from{background-position:0 0}to{background-position:-${frames * 100}% 0}}`;
+    })
+    .join("\n");
 }
 
 function art(id) {
-  const image = node(id).image;
-  return `<div class="art${image ? " has-image" : ""}" data-ui="${id}" data-ui-type="image" style="${image ? `background-image:url('${image}')` : ""}">${image ? "" : "Add a cover image"}</div>`;
+  const n = node(id);
+  const image = n.image;
+  return `<div class="art${image ? " has-image" : ""}" data-ui="${id}" data-ui-type="image">${image ? "" : "Add a cover image"}</div>`;
 }
 
 function screenStyle(id) {
@@ -208,14 +339,32 @@ function screenStyle(id) {
   const bg = n.bg || theme.global.bg;
   const image = n.image;
   const background = image
-    ? `linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.4)), url('${image}') center/cover, ${bg}`
+    ? `linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.4)), url('${image}') ${n.imageX ?? 50}% ${n.imageY ?? 50}% / ${n.imageFit === "contain" ? "contain" : "cover"} no-repeat, ${bg}`
     : bg;
   return `background:${background};color:${theme.global.text};--bg:${theme.global.bg};--text:${theme.global.text};--muted:${theme.global.muted};--accent:${theme.global.accent};--accent-ink:${theme.global.accentInk};--panel:${theme.global.panel};`;
 }
 
+function overlayHtml() {
+  return overlays().map((ov) => {
+    const selected = selectedOverlay === ov.id ? " selected" : "";
+    const shape = ov.shape || "rect";
+    const clip = clipCss(ov);
+    const radius = shape === "circle" || shape === "pill" ? "999px" : (ov.radius ?? 12) + "px";
+    const extra = ov.kind === "sprite" ? spriteStyle(ov) : ov.image ? imageCss(ov) : `background:${ov.fill || theme.global.accent}`;
+    const handles = selectedOverlay === ov.id
+      ? HANDLES.map((h) => `<span class="ov-handle" data-handle="${h}"></span>`).join("")
+      : "";
+    return `<div class="overlay-wrap${selected}" data-overlay="${ov.id}" style="left:${ov.x}%;top:${ov.y}%;width:${ov.w}px;height:${ov.h}px;opacity:${(ov.opacity ?? 100) / 100}">
+      <div class="overlay-visual" style="border-radius:${radius};${clip ? `clip-path:${clip};` : ""}${extra}"></div>
+      ${handles}
+    </div>`;
+  }).join("");
+}
+
 function screensHtml() {
   const g = theme.global;
-  document.documentElement.classList.remove("ui-shape-pill", "ui-shape-rounded", "ui-shape-square", "ui-style-fill", "ui-style-outline", "ui-style-soft", "ui-style-image");
+  SHAPE_CLASSES.forEach((name) => document.documentElement.classList.remove("ui-shape-" + name));
+  document.documentElement.classList.remove("ui-style-fill", "ui-style-outline", "ui-style-soft");
   document.documentElement.classList.add("ui-shape-" + g.buttonShape, "ui-style-" + g.buttonStyle);
 
   const html = {
@@ -235,6 +384,7 @@ function screensHtml() {
           <span class="card-name" data-ui="hub.card2.name" data-ui-type="text">${textOf("hub.card2.name")}</span>
           <span class="card-desc" data-ui="hub.card2.desc" data-ui-type="text">${textOf("hub.card2.desc")}</span>
         </div>
+        ${overlayHtml()}
       </div>`,
     "c1-home": home("c1"),
     "c1-lobby": lobby("c1", "Players in the room"),
@@ -245,6 +395,7 @@ function screensHtml() {
         <p class="sub" data-ui="c1.questions.sub" data-ui-type="text">${textOf("c1.questions.sub")}</p>
         <textarea class="field-box" data-ui="c1.questions.input" data-ui-type="field" placeholder="${textOf("c1.questions.input")}">${textOf("c1.questions.input")}</textarea>
         <button class="btn" data-ui="c1.questions.add" data-ui-type="button">${textOf("c1.questions.add")}</button>
+        ${overlayHtml()}
       </div>`,
     "c1-game": `
       <div class="phone-ui" data-ui="c1.game.screen" data-ui-type="screen" style="${screenStyle("c1.game.screen")}">
@@ -253,18 +404,16 @@ function screensHtml() {
         <p class="sub" data-ui="c1.game.caption" data-ui-type="text" style="text-align:center">${textOf("c1.game.caption")}</p>
         <button class="ghost">Skip</button>
         <button class="btn">Answered</button>
+        ${overlayHtml()}
       </div>`,
     "c1-finals": `
       <div class="phone-ui" data-ui="c1.finals.screen" data-ui-type="screen" style="${screenStyle("c1.finals.screen")}">
         <div class="topbar"><strong>Anon Wheel</strong><span class="badge" data-ui="c1.finals.tag" data-ui-type="text">${textOf("c1.finals.tag")}</span></div>
-        <div class="buzzers">
-          <div class="buzzer">Alex<br/>4</div>
-          <div>VS</div>
-          <div class="buzzer">Sam<br/>3</div>
-        </div>
+        <div class="buzzers"><div class="buzzer">Alex<br/>4</div><div>VS</div><div class="buzzer">Sam<br/>3</div></div>
         <p class="title">Who would eat dessert first?</p>
         <button class="btn">Correct</button>
         <button class="ghost">Wrong</button>
+        ${overlayHtml()}
       </div>`,
     "c1-end": `
       <div class="phone-ui" data-ui="c1.end.screen" data-ui-type="screen" style="${screenStyle("c1.end.screen")}">
@@ -273,6 +422,7 @@ function screensHtml() {
         <h1 class="title" data-ui="c1.end.title" data-ui-type="text">${textOf("c1.end.title")}</h1>
         <ul class="list"><li><span>#1 Alex</span><span>3 picks</span></li><li><span>#2 Sam</span><span>2 picks</span></li></ul>
         <button class="btn" data-ui="c1.end.again" data-ui-type="button">${textOf("c1.end.again")}</button>
+        ${overlayHtml()}
       </div>`,
     "c2-home": home("c2"),
     "c2-lobby": lobby("c2", "Players"),
@@ -282,16 +432,15 @@ function screensHtml() {
         <p class="eyebrow" data-ui="c2.play.eyebrow" data-ui-type="text">${textOf("c2.play.eyebrow")}</p>
         <h1 class="title">plan the trip?</h1>
         <p class="sub" data-ui="c2.play.help" data-ui-type="text">${textOf("c2.play.help")}</p>
-        <div class="nominees">
-          <button class="ghost">Alex</button><button class="ghost">Sam</button>
-          <button class="ghost">Riley</button><button class="ghost">Jordan</button>
-        </div>
+        <div class="nominees"><button class="ghost">Alex</button><button class="ghost">Sam</button><button class="ghost">Riley</button><button class="ghost">Jordan</button></div>
+        ${overlayHtml()}
       </div>`,
     "c2-wait": `
       <div class="phone-ui" data-ui="c2.wait.screen" data-ui-type="screen" style="${screenStyle("c2.wait.screen")}">
         <p class="badge">Category 2</p>
         <h1 class="title" data-ui="c2.wait.title" data-ui-type="text">${textOf("c2.wait.title")}</h1>
         <p class="sub" data-ui="c2.wait.copy" data-ui-type="text">${textOf("c2.wait.copy")}</p>
+        ${overlayHtml()}
       </div>`,
     "c2-results": `
       <div class="phone-ui" data-ui="c2.results.screen" data-ui-type="screen" style="${screenStyle("c2.results.screen")}">
@@ -299,6 +448,7 @@ function screensHtml() {
         <div class="card"><strong>Who plans the trip?</strong><p class="sub">Alex 3 · Sam 1</p></div>
         <h1 class="title" data-ui="c2.results.bodyTitle" data-ui-type="text">${textOf("c2.results.bodyTitle")}</h1>
         <p class="sub">planner · chaotic · loyal</p>
+        ${overlayHtml()}
       </div>`,
   };
   return html[screenId];
@@ -314,12 +464,13 @@ function home(game) {
       <h1 class="title" data-ui="${p}.title" data-ui-type="text">${textOf(p + ".title")}</h1>
       <p class="sub" data-ui="${p}.sub" data-ui-type="text">${textOf(p + ".sub")}</p>
       <span class="label">Your name</span>
-      <input class="field-box" data-ui="${p}.name" data-ui-type="field" placeholder="${textOf(p + ".name")}" value="" />
+      <input class="field-box" data-ui="${p}.name" data-ui-type="field" placeholder="${textOf(p + ".name")}" />
       <button class="btn" data-ui="${p}.create" data-ui-type="button">${textOf(p + ".create")}</button>
       <div class="join">
         <input class="field-box" data-ui="${p}.room" data-ui-type="field" placeholder="${textOf(p + ".room")}" />
         <button class="ghost" data-ui="${p}.join" data-ui-type="button">${textOf(p + ".join")}</button>
       </div>
+      ${overlayHtml()}
     </div>`;
 }
 
@@ -335,6 +486,7 @@ function lobby(game, title) {
       <p class="sub" data-ui="${p}.sub" data-ui-type="text">${textOf(p + ".sub")}</p>
       <ul class="list"><li><span>Alex</span><span>you</span></li><li><span>Sam</span><span>joined</span></li><li><span>Riley</span><span>joined</span></li></ul>
       <button class="btn" data-ui="${p}.start" data-ui-type="button">${textOf(p + ".start")}</button>
+      ${overlayHtml()}
     </div>`;
 }
 
@@ -343,50 +495,157 @@ function selectedMeta() {
   return screen.nodes.find((n) => n[0] === selectedId) || screen.nodes[0];
 }
 
+function slider(id, label, min, max, value, step) {
+  return `<div class="field"><span>${label}</span><div class="slider"><input type="range" id="${id}" min="${min}" max="${max}" step="${step || 1}" value="${value}"><output>${value}</output></div></div>`;
+}
+
 function renderPages() {
   let last = "";
+  const overlayBtns = overlays().map((ov) =>
+    `<button class="layer-btn${selectedOverlay === ov.id ? " active" : ""}" data-overlay-layer="${ov.id}">${ov.kind === "sprite" ? "Sprite" : "Shape"} ${ov.shape || ""}</button>`
+  ).join("");
   document.getElementById("pages").innerHTML = SCREENS.map((screen) => {
     const group = screen.group !== last ? `<p class="group">${screen.group}</p>` : "";
     last = screen.group;
     return `${group}<button class="page-btn${screen.id === screenId ? " active" : ""}" data-screen="${screen.id}">${screen.label}</button>`;
-  }).join("") + `<p class="group">Layers</p>` + SCREENS.find((s) => s.id === screenId).nodes.map((n) =>
-    `<button class="layer-btn${n[0] === selectedId ? " active" : ""}" data-node="${n[0]}">${n[1]}</button>`
-  ).join("");
+  }).join("") +
+    `<p class="group">Layers</p>` +
+    SCREENS.find((s) => s.id === screenId).nodes.map((n) =>
+      `<button class="layer-btn${!selectedOverlay && n[0] === selectedId ? " active" : ""}" data-node="${n[0]}">${n[1]}</button>`
+    ).join("") +
+    `<p class="group">Shapes & sprites</p>` +
+    overlayBtns +
+    `<div class="row" style="margin-top:8px">
+      <button type="button" id="add-shape">Add shape</button>
+      <button type="button" id="add-sprite">Add sprite</button>
+    </div>`;
+}
+
+function shapeButtons(current, scope) {
+  const list = scope === "global" ? SHAPES.filter(([id]) => id !== "custom") : SHAPES;
+  return `<div class="shape-grid">${list.map(([id, label]) =>
+    `<button type="button" data-shape-scope="${scope}" data-local-shape="${id}" class="shape-btn${current === id ? " active" : ""}" title="${label}">
+      <svg viewBox="0 0 32 32" aria-hidden="true">${SHAPE_ICONS[id]}</svg>
+      <span>${label}</span>
+    </button>`
+  ).join("")}</div>`;
+}
+
+function clipField(n, id) {
+  if (n.shape !== "custom") return "";
+  return `<div class="field"><span>Custom clip-path</span><textarea id="${id}">${n.clipPath || DEFAULT_CLIP}</textarea>
+    <p class="hint">Same syntax as CSS clip-path, e.g. polygon(0 0, 100% 20%, 80% 100%, 0 80%).</p></div>`;
+}
+
+function imageControls(n, prefix) {
+  return `
+    <p class="group">Crop &amp; transform</p>
+    ${n.image ? `<div class="img-preview" style="background-image:url('${n.image}');background-position:${n.imageX ?? 50}% ${n.imageY ?? 50}%;background-size:${n.imageFit === "contain" ? "contain" : (n.imageScale ?? 100)}%"></div>` : ""}
+    <div class="field"><span>Upload image</span><input type="file" id="${prefix}-image" accept="image/*"></div>
+    <div class="field"><span>Fit</span><div class="row">
+      ${["cover", "contain", "fill", "tile"].map((fit) => `<button type="button" data-fit="${fit}" class="${(n.imageFit || "cover") === fit ? "active" : ""}">${fit}</button>`).join("")}
+    </div></div>
+    ${slider(prefix + "-x", "Position X", 0, 100, n.imageX ?? 50)}
+    ${slider(prefix + "-y", "Position Y", 0, 100, n.imageY ?? 50)}
+    ${slider(prefix + "-zoom", "Zoom", 50, 220, n.imageScale ?? 100)}
+    ${slider(prefix + "-rotate", "Rotate", -180, 180, n.rotate ?? 0)}
+    ${slider(prefix + "-opacity", "Opacity", 10, 100, n.opacity ?? 100)}
+    <div class="row">
+      <button type="button" id="${prefix}-flipx" class="${n.flipX ? "active" : ""}">Flip H</button>
+      <button type="button" id="${prefix}-flipy" class="${n.flipY ? "active" : ""}">Flip V</button>
+      <button type="button" id="${prefix}-remove">Remove image</button>
+    </div>`;
 }
 
 function renderInspector() {
-  const meta = selectedMeta();
-  selectedId = meta[0];
-  const type = meta[2];
-  const n = node(selectedId);
   const g = theme.global;
-  document.getElementById("inspector").innerHTML = `
+  const overlay = overlays().find((item) => item.id === selectedOverlay);
+  let body = `
     <p class="group">Looks</p>
-    <div class="row">
-      ${Object.keys(PRESETS).map((id) => `<button data-preset="${id}">${id}</button>`).join("")}
-    </div>
-    <div class="field"><span>Accent</span><div class="color"><input type="color" id="accent" value="${g.accent}"><input id="accent-text" value="${g.accent}"></div></div>
-    <div class="field"><span>Button shape</span><div class="row">
-      ${["pill", "rounded", "square"].map((s) => `<button data-shape="${s}" class="${g.buttonShape === s ? "active" : ""}">${s}</button>`).join("")}
-    </div></div>
+    <div class="row">${Object.keys(PRESETS).map((id) => `<button data-preset="${id}">${id}</button>`).join("")}</div>
+    <div class="field"><span>Accent</span><div class="color"><input type="color" id="accent" value="${g.accent}"></div></div>
+    <div class="field"><span>Default button shape</span>${shapeButtons(g.buttonShape, "global")}</div>
     <div class="field"><span>Button style</span><div class="row">
       ${["fill", "outline", "soft"].map((s) => `<button data-style="${s}" class="${g.buttonStyle === s ? "active" : ""}">${s}</button>`).join("")}
-    </div></div>
-    <p class="group">Selected · ${meta[1]}</p>
-    ${type === "text" || type === "button" ? `<div class="field"><span>Text</span><textarea id="node-text">${n.text || ""}</textarea></div>` : ""}
-    ${type === "field" ? `<div class="field"><span>Placeholder</span><input id="node-placeholder" value="${n.placeholder || ""}"></div>` : ""}
-    <div class="field"><span>Text color</span><div class="color"><input type="color" id="node-color" value="${n.color || g.text}"><input id="node-color-text" value="${n.color || ""}"></div></div>
-    ${type === "button" || type === "screen" ? `<div class="field"><span>Fill color</span><div class="color"><input type="color" id="node-bg" value="${n.bg || g.accent}"><input id="node-bg-text" value="${n.bg || ""}"></div></div>` : ""}
-    ${type === "image" || type === "screen" || type === "button" ? `<div class="field"><span>Image</span><input type="file" id="node-image" accept="image/*"><button type="button" id="remove-image">Remove image</button></div>` : ""}
-    <p class="hint">Export downloads <code>theme.json</code>. Drop that file into the game at <code>public/ui/theme/theme.json</code>. The game stays separate.</p>
-  `;
+    </div></div>`;
+
+  if (overlay) {
+    body += `
+      <p class="group">Selected · ${overlay.kind} overlay</p>
+      ${overlay.kind === "shape" ? `<div class="field"><span>Shape</span>${shapeButtons(overlay.shape || "rect", "overlay")}</div>` : ""}
+      ${clipField(overlay, "ov-clip")}
+      <div class="field"><span>Fill</span><div class="color"><input type="color" id="ov-fill" value="${overlay.fill || g.accent}"></div></div>
+      ${slider("ov-w", "Width", 24, 320, overlay.w || 80)}
+      ${slider("ov-h", "Height", 24, 320, overlay.h || 80)}
+      ${slider("ov-radius", "Corner radius", 0, 160, overlay.radius ?? 12)}
+      ${overlay.kind === "sprite" ? slider("ov-opacity", "Opacity", 10, 100, overlay.opacity ?? 100) : ""}
+      ${overlay.kind === "sprite" ? `
+        <p class="group">Sprite animation</p>
+        <div class="field"><span>Sprite sheet or GIF</span><input type="file" id="ov-sprite" accept="image/*"></div>
+        ${slider("ov-frames", "Frames", 1, 24, overlay.frames || 4)}
+        ${slider("ov-fps", "FPS", 1, 24, overlay.fps || 8)}
+        <p class="hint">GIF/WebP plays as-is. A horizontal PNG strip uses Frames + FPS like a game sprite sheet.</p>
+      ` : ""}
+      ${overlay.kind === "shape" || (overlay.image && overlay.kind !== "sprite") ? imageControls(overlay, "ov") : ""}
+      <button type="button" id="ov-delete">Delete overlay</button>
+      <p class="hint">Drag the shape on the phone to move it. Blue handles resize it.</p>`;
+  } else {
+    const meta = selectedMeta();
+    selectedId = meta[0];
+    const type = meta[2];
+    const n = node(selectedId);
+    body += `
+      <p class="group">Selected · ${meta[1]}</p>
+      ${type === "text" || type === "button" ? `<div class="field"><span>Text</span><textarea id="node-text">${n.text || ""}</textarea></div>` : ""}
+      ${type === "field" ? `<div class="field"><span>Placeholder</span><input id="node-placeholder" value="${n.placeholder || ""}"></div>` : ""}
+      ${type === "button" || type === "image" || type === "screen" ? `<div class="field"><span>Shape</span>${shapeButtons(n.shape || g.buttonShape, "node")}</div>` : ""}
+      ${type === "button" || type === "image" || type === "screen" ? clipField(n, "node-clip") : ""}
+      ${type === "button" || type === "image" || type === "screen" ? slider("node-radius", "Corner radius", 0, 80, n.radius ?? 16) : ""}
+      ${type === "button" || type === "image" || type === "screen" ? `
+        <label class="check"><input type="checkbox" id="link-corners" ${n.linkCorners === false ? "" : "checked"}> Link corners</label>
+        <div class="field"><span>Independent corners</span><div class="corners">
+          <input id="r-tl" type="number" min="0" max="80" value="${n.tl ?? n.radius ?? 16}" title="Top left">
+          <input id="r-tr" type="number" min="0" max="80" value="${n.tr ?? n.radius ?? 16}" title="Top right">
+          <input id="r-bl" type="number" min="0" max="80" value="${n.bl ?? n.radius ?? 16}" title="Bottom left">
+          <input id="r-br" type="number" min="0" max="80" value="${n.br ?? n.radius ?? 16}" title="Bottom right">
+        </div></div>` : ""}
+      <div class="field"><span>Text color</span><div class="color"><input type="color" id="node-color" value="${n.color || g.text}"></div></div>
+      ${type === "button" || type === "screen" ? `<div class="field"><span>Fill color</span><div class="color"><input type="color" id="node-bg" value="${n.bg || g.accent}"></div></div>` : ""}
+      ${type === "image" || type === "screen" || type === "button" ? imageControls(n, "node") : ""}
+      ${type === "button" ? `<label class="check"><input type="checkbox" id="node-shadow" ${n.shadow ? "checked" : ""}> Drop shadow</label>` : ""}`;
+  }
+
+  body += `<p class="hint">Export downloads theme.json into the game folder. This editor stays a separate Chrome app.</p>`;
+  document.getElementById("inspector").innerHTML = body;
+}
+
+function applyVisualsToPhone() {
+  document.querySelectorAll("#phone [data-ui]").forEach((el) => {
+    const id = el.getAttribute("data-ui");
+    const type = el.getAttribute("data-ui-type") || "text";
+    const n = node(id);
+    if (n.color) el.style.color = n.color;
+    if (type === "text" || type === "field") {
+      el.classList.toggle("selected", !selectedOverlay && id === selectedId);
+      return;
+    }
+    const extra = visualCss(id);
+    if (extra) el.style.cssText += ";" + extra;
+    el.classList.toggle("selected", !selectedOverlay && id === selectedId);
+  });
+  let tag = document.getElementById("sprite-css");
+  if (!tag) {
+    tag = document.createElement("style");
+    tag.id = "sprite-css";
+    document.head.appendChild(tag);
+  }
+  tag.textContent = spriteKeyframes();
 }
 
 function renderPhone() {
   document.getElementById("phone").innerHTML = screensHtml();
-  document.querySelectorAll("#phone [data-ui]").forEach((el) => {
-    el.classList.toggle("selected", el.getAttribute("data-ui") === selectedId);
-  });
+  applyVisualsToPhone();
+  bindPhone();
 }
 
 function render() {
@@ -396,35 +655,85 @@ function render() {
   bind();
 }
 
+function liveSlider(id, key, overlay) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.oninput = () => {
+    const value = Number(el.value);
+    el.nextElementSibling.textContent = value;
+    if (overlay) patchOverlay({ [key]: value });
+    else patchNode({ [key]: value });
+  };
+}
+
+function bindImageControls(prefix, overlay) {
+  const set = (partial, refresh) => overlay ? patchOverlay(partial, refresh) : patchNode(partial, refresh);
+  const current = overlay || node(selectedId);
+  const img = document.getElementById(prefix + "-image");
+  if (img) img.onchange = () => fileToAsset(img.files[0], false).then((data) => set({ image: data, animated: img.files[0].type.includes("gif") || img.files[0].type.includes("webp") ? "gif" : "" }, true));
+  document.querySelectorAll("[data-fit]").forEach((btn) => {
+    btn.onclick = () => set({ imageFit: btn.getAttribute("data-fit") }, true);
+  });
+  liveSlider(prefix + "-x", "imageX", overlay);
+  liveSlider(prefix + "-y", "imageY", overlay);
+  liveSlider(prefix + "-zoom", "imageScale", overlay);
+  liveSlider(prefix + "-rotate", "rotate", overlay);
+  liveSlider(prefix + "-opacity", "opacity", overlay);
+  const fx = document.getElementById(prefix + "-flipx");
+  if (fx) fx.onclick = () => set({ flipX: !current.flipX }, true);
+  const fy = document.getElementById(prefix + "-flipy");
+  if (fy) fy.onclick = () => set({ flipY: !current.flipY }, true);
+  const rm = document.getElementById(prefix + "-remove");
+  if (rm) rm.onclick = () => set({ image: "", sprite: "" }, true);
+}
+
 function bind() {
   document.querySelectorAll("[data-screen]").forEach((btn) => {
     btn.onclick = () => {
       screenId = btn.getAttribute("data-screen");
+      selectedOverlay = null;
       selectedId = SCREENS.find((s) => s.id === screenId).nodes[0][0];
       render();
     };
   });
   document.querySelectorAll("[data-node]").forEach((btn) => {
     btn.onclick = () => {
+      selectedOverlay = null;
       selectedId = btn.getAttribute("data-node");
       render();
     };
   });
-  document.getElementById("phone").onclick = (event) => {
-    const el = event.target.closest("[data-ui]");
-    if (!el) return;
-    selectedId = el.getAttribute("data-ui");
-    render();
-  };
+  document.querySelectorAll("[data-overlay-layer]").forEach((btn) => {
+    btn.onclick = () => {
+      selectedOverlay = btn.getAttribute("data-overlay-layer");
+      render();
+    };
+  });
   document.querySelectorAll("[data-preset]").forEach((btn) => {
     btn.onclick = () => patchGlobal(PRESETS[btn.getAttribute("data-preset")]);
-  });
-  document.querySelectorAll("[data-shape]").forEach((btn) => {
-    btn.onclick = () => patchGlobal({ buttonShape: btn.getAttribute("data-shape") });
   });
   document.querySelectorAll("[data-style]").forEach((btn) => {
     btn.onclick = () => patchGlobal({ buttonStyle: btn.getAttribute("data-style") });
   });
+  document.querySelectorAll("[data-local-shape]").forEach((btn) => {
+    btn.onclick = () => {
+      const shape = btn.getAttribute("data-local-shape");
+      const scope = btn.getAttribute("data-shape-scope");
+      const current = scope === "overlay"
+        ? overlays().find((item) => item.id === selectedOverlay) || {}
+        : node(selectedId);
+      const extra = shape === "custom" ? { clipPath: current.clipPath || DEFAULT_CLIP } : {};
+      if (scope === "global") patchGlobal({ buttonShape: shape });
+      else if (scope === "overlay") patchOverlay({ shape, ...extra }, true);
+      else patchNode({ shape, ...extra }, true);
+    };
+  });
+
+  const addShape = document.getElementById("add-shape");
+  if (addShape) addShape.onclick = () => addOverlay("shape");
+  const addSprite = document.getElementById("add-sprite");
+  if (addSprite) addSprite.onclick = () => addOverlay("sprite");
+
   const text = document.getElementById("node-text");
   if (text) text.oninput = () => patchNode({ text: text.value });
   const placeholder = document.getElementById("node-placeholder");
@@ -435,26 +744,215 @@ function bind() {
   if (nodeColor) nodeColor.oninput = () => patchNode({ color: nodeColor.value });
   const nodeBg = document.getElementById("node-bg");
   if (nodeBg) nodeBg.oninput = () => patchNode({ bg: nodeBg.value });
-  const image = document.getElementById("node-image");
-  if (image) image.onchange = () => fileToImage(image.files[0]);
-  const remove = document.getElementById("remove-image");
-  if (remove) remove.onclick = () => patchNode({ image: "" });
+  liveSlider("node-radius", "radius", null);
+  const link = document.getElementById("link-corners");
+  if (link) link.onchange = () => patchNode({ linkCorners: link.checked });
+  ["tl", "tr", "bl", "br"].forEach((corner) => {
+    const el = document.getElementById("r-" + corner);
+    if (el) el.oninput = () => patchNode({ [corner]: Number(el.value), linkCorners: false });
+  });
+  const shadow = document.getElementById("node-shadow");
+  if (shadow) shadow.onchange = () => patchNode({ shadow: shadow.checked });
+  const nodeClip = document.getElementById("node-clip");
+  if (nodeClip) nodeClip.oninput = () => patchNode({ clipPath: nodeClip.value, shape: "custom" });
+  bindImageControls("node", null);
+
+  const overlay = overlays().find((item) => item.id === selectedOverlay);
+  if (overlay) {
+    const fill = document.getElementById("ov-fill");
+    if (fill) fill.oninput = () => patchOverlay({ fill: fill.value });
+    liveSlider("ov-w", "w", overlay);
+    liveSlider("ov-h", "h", overlay);
+    liveSlider("ov-radius", "radius", overlay);
+    liveSlider("ov-opacity", "opacity", overlay);
+    liveSlider("ov-frames", "frames", overlay);
+    liveSlider("ov-fps", "fps", overlay);
+    const sprite = document.getElementById("ov-sprite");
+    if (sprite) sprite.onchange = () => fileToAsset(sprite.files[0], true).then((data) => {
+      const gif = sprite.files[0].type.includes("gif") || sprite.files[0].type.includes("webp");
+      patchOverlay({ image: data, animated: gif ? "gif" : "sheet" }, true);
+    });
+    const ovClip = document.getElementById("ov-clip");
+    if (ovClip) ovClip.oninput = () => patchOverlay({ clipPath: ovClip.value, shape: "custom" });
+    bindImageControls("ov", overlay);
+    const del = document.getElementById("ov-delete");
+    if (del) del.onclick = () => {
+      theme = { ...theme, overlays: { ...theme.overlays, [screenId]: overlays().filter((item) => item.id !== selectedOverlay) } };
+      selectedOverlay = null;
+      save();
+      render();
+    };
+  }
 }
 
-function fileToImage(file) {
-  if (!file) return;
-  const img = new Image();
-  const url = URL.createObjectURL(file);
-  img.onload = () => {
-    const scale = Math.min(1, 1100 / Math.max(img.width, img.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.width * scale);
-    canvas.height = Math.round(img.height * scale);
-    canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
-    URL.revokeObjectURL(url);
-    patchNode({ image: canvas.toDataURL("image/jpeg", 0.82) });
+function bindPhone() {
+  const phone = document.getElementById("phone");
+  phone.onclick = (event) => {
+    const overlay = event.target.closest("[data-overlay]");
+    if (overlay) {
+      selectedOverlay = overlay.getAttribute("data-overlay");
+      render();
+      return;
+    }
+    const el = event.target.closest("[data-ui]");
+    if (!el) return;
+    selectedOverlay = null;
+    selectedId = el.getAttribute("data-ui");
+    render();
   };
-  img.src = url;
+  phone.querySelectorAll("[data-overlay]").forEach((el) => {
+    el.onmousedown = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const stage = phone.querySelector(".phone-ui");
+      const rect = stage.getBoundingClientRect();
+      const id = el.getAttribute("data-overlay");
+      const ov = overlays().find((item) => item.id === id) || {};
+      const handle = event.target.closest("[data-handle]");
+      selectedOverlay = id;
+      if (handle) {
+        drag = {
+          type: "resize",
+          handle: handle.getAttribute("data-handle"),
+          id,
+          startX: event.clientX,
+          startY: event.clientY,
+          w: ov.w || 80,
+          h: ov.h || 80,
+          x: ov.x || 0,
+          y: ov.y || 0,
+          rect,
+        };
+        return;
+      }
+      drag = {
+        type: "move",
+        id,
+        dx: event.clientX - el.getBoundingClientRect().left,
+        dy: event.clientY - el.getBoundingClientRect().top,
+        rect,
+      };
+    };
+  });
+}
+
+function applyDragBox(el, box) {
+  if (!el) return;
+  el.style.left = box.x + "%";
+  el.style.top = box.y + "%";
+  if (box.w != null) el.style.width = box.w + "px";
+  if (box.h != null) el.style.height = box.h + "px";
+}
+
+document.addEventListener("mousemove", (event) => {
+  if (!drag) return;
+  const el = document.querySelector('[data-overlay="' + drag.id + '"]');
+  if (drag.type === "resize") {
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    let w = drag.w;
+    let h = drag.h;
+    let x = drag.x;
+    let y = drag.y;
+    const handle = drag.handle;
+    if (handle.includes("e")) w = Math.max(24, drag.w + dx);
+    if (handle.includes("s")) h = Math.max(24, drag.h + dy);
+    if (handle.includes("w")) {
+      w = Math.max(24, drag.w - dx);
+      x = drag.x + ((drag.w - w) / drag.rect.width) * 100;
+    }
+    if (handle.includes("n")) {
+      h = Math.max(24, drag.h - dy);
+      y = drag.y + ((drag.h - h) / drag.rect.height) * 100;
+    }
+    drag.live = {
+      x: Math.max(0, Math.min(90, x)),
+      y: Math.max(0, Math.min(90, y)),
+      w,
+      h,
+    };
+    applyDragBox(el, drag.live);
+    return;
+  }
+  const x = ((event.clientX - drag.rect.left - drag.dx) / drag.rect.width) * 100;
+  const y = ((event.clientY - drag.rect.top - drag.dy) / drag.rect.height) * 100;
+  drag.live = {
+    x: Math.max(0, Math.min(88, x)),
+    y: Math.max(0, Math.min(88, y)),
+  };
+  applyDragBox(el, drag.live);
+});
+document.addEventListener("mouseup", () => {
+  if (drag && drag.live) {
+    selectedOverlay = drag.id;
+    patchOverlay(drag.live, true);
+  }
+  drag = null;
+});
+
+function defaultSpriteSheet() {
+  const frames = 4;
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size * frames;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  for (let i = 0; i < frames; i++) {
+    ctx.fillStyle = "rgba(8,18,24,.35)";
+    ctx.fillRect(i * size, 0, size, size);
+    ctx.fillStyle = theme.global.accent;
+    ctx.beginPath();
+    ctx.arc(i * size + size / 2, size / 2, 8 + i * 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return canvas.toDataURL("image/png");
+}
+
+function addOverlay(kind) {
+  const item = {
+    id: "ov" + Date.now(),
+    kind,
+    shape: kind === "sprite" ? "rect" : "circle",
+    x: 20,
+    y: 18,
+    w: kind === "sprite" ? 72 : 88,
+    h: kind === "sprite" ? 72 : 88,
+    fill: theme.global.accent,
+    opacity: kind === "shape" ? 70 : 100,
+    frames: 4,
+    fps: 8,
+    radius: kind === "sprite" ? 8 : 999,
+    animated: kind === "sprite" ? "sheet" : "",
+    image: kind === "sprite" ? defaultSpriteSheet() : "",
+  };
+  theme = { ...theme, overlays: { ...theme.overlays, [screenId]: overlays().concat(item) } };
+  selectedOverlay = item.id;
+  save();
+  render();
+}
+
+function fileToAsset(file, keepAnimation) {
+  return new Promise((resolve) => {
+    if (!file) return;
+    if (keepAnimation || file.type === "image/gif" || file.type === "image/webp") {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, 1200 / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.84));
+    };
+    img.src = url;
+  });
 }
 
 document.getElementById("btn-undo").onclick = () => {
@@ -478,13 +976,27 @@ document.getElementById("import-json").onchange = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
   const parsed = JSON.parse(await file.text());
-  commit({ ...defaultTheme(), ...parsed, global: { ...defaultTheme().global, ...(parsed.global || {}) }, nodes: parsed.nodes || {} });
+  commit({
+    ...defaultTheme(),
+    ...parsed,
+    global: { ...defaultTheme().global, ...(parsed.global || {}) },
+    nodes: parsed.nodes || {},
+    overlays: parsed.overlays || {},
+  });
   event.target.value = "";
 };
 
 try {
   const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-  if (stored) theme = { ...defaultTheme(), ...stored, global: { ...defaultTheme().global, ...(stored.global || {}) }, nodes: stored.nodes || {} };
+  if (stored) {
+    theme = {
+      ...defaultTheme(),
+      ...stored,
+      global: { ...defaultTheme().global, ...(stored.global || {}) },
+      nodes: stored.nodes || {},
+      overlays: stored.overlays || {},
+    };
+  }
 } catch (err) {
   theme = defaultTheme();
 }

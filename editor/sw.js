@@ -1,13 +1,22 @@
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open("checktrail-editor-v1").then((cache) =>
+    caches.open("checktrail-editor-v3").then((cache) =>
       cache.addAll(["./", "./index.html", "./styles.css", "./app.js", "./manifest.json", "./icon.svg"])
     )
   );
 });
 
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((key) => key !== "checktrail-editor-v3").map((key) => caches.delete(key)))
+    ).then(() => self.clients.claim())
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
