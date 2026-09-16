@@ -1,15 +1,15 @@
 :root {
-  --ink: #3ec8ff;
-  --panel: #fff6dc;
-  --line: #f0c040;
-  --text: #3a2108;
-  --muted: #7a5530;
-  --blue: #2e8fff;
-  --blue-bar: #4da3ff;
-  --accent: #ffd24a;
-  --accent-ink: #3a2108;
-  --font-display: "Lilita One", "Bebas Neue", sans-serif;
-  --font-body: "Nunito", "Outfit", system-ui, sans-serif;
+  --ink: #000;
+  --panel: #000;
+  --line: #fff;
+  --text: #fff;
+  --muted: #cfcfcf;
+  --blue: #fff;
+  --blue-bar: #fff;
+  --accent: #fff;
+  --accent-ink: #000;
+  --font-display: "Gochi Hand", "Patrick Hand", cursive;
+  --font-body: "Patrick Hand", "Gochi Hand", cursive;
 }
 
 *,
@@ -42,11 +42,7 @@ input[type="text"],
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, #b8f0ff 0%, transparent 58%),
-    radial-gradient(ellipse 50% 40% at 0% 18%, rgba(255, 255, 255, 0.55), transparent 50%),
-    radial-gradient(ellipse 45% 35% at 100% 12%, rgba(77, 163, 255, 0.45), transparent 48%),
-    linear-gradient(180deg, #5ad4ff 0%, #2eb8f6 38%, #7ee15a 72%, #4caf50 100%);
+  background: #000;
 }
 
 #app { position: relative; z-index: 1; min-height: 100vh; min-height: 100dvh; }

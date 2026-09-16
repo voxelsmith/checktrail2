@@ -135,6 +135,7 @@ const SCREENS = [
 ];
 
 const PRESETS = {
+  scribble: { accent: "#ffffff", accentInk: "#000000", bg: "#000000", text: "#ffffff", muted: "#cfcfcf", panel: "#000000", buttonShape: "rounded", buttonStyle: "outline" },
   arena: { accent: "#ffd24a", accentInk: "#3a2108", bg: "#3ec8ff", text: "#3a2108", muted: "#7a5530", panel: "#fff6dc", buttonShape: "rounded", buttonStyle: "fill" },
   lime: { accent: "#c8f542", accentInk: "#102000", bg: "#071018", text: "#e8f4ff", muted: "#8aa3b5", panel: "#122433", buttonShape: "pill", buttonStyle: "fill" },
   blue: { accent: "#4d7dff", accentInk: "#071018", bg: "#05070b", text: "#eef2f7", muted: "#8b93a7", panel: "#12151c", buttonShape: "pill", buttonStyle: "fill" },
@@ -195,7 +196,7 @@ const DEFAULTS = {
 function defaultTheme() {
   return {
     version: 2,
-    global: { ...PRESETS.arena },
+    global: { ...PRESETS.scribble },
     nodes: {},
     overlays: {},
   };

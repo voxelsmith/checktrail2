@@ -9,10 +9,11 @@ export default function Page() {
   return (
     <>
       <link
-        href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&family=Bebas+Neue&family=Outfit:wght@400;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand&display=swap"
         rel="stylesheet"
       />
       <link href="/ui/hub/hub.css" rel="stylesheet" />
+      <link href="/ui/theme/scribble.css" rel="stylesheet" />
       <main className="hub" data-ui="hub.screen" data-ui-type="screen">
         <div className="hub-inner">
           <div className="ui-art-slot" data-ui="hub.art" data-ui-type="image">

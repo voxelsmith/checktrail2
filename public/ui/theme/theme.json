@@ -1,14 +1,14 @@
 {
   "version": 2,
   "global": {
-    "accent": "#ffd24a",
-    "accentInk": "#3a2108",
-    "bg": "#3ec8ff",
-    "text": "#3a2108",
-    "muted": "#7a5530",
-    "panel": "#fff6dc",
+    "accent": "#ffffff",
+    "accentInk": "#000000",
+    "bg": "#000000",
+    "text": "#ffffff",
+    "muted": "#cfcfcf",
+    "panel": "#000000",
     "buttonShape": "rounded",
-    "buttonStyle": "fill"
+    "buttonStyle": "outline"
   },
   "nodes": {},
   "overlays": {}
