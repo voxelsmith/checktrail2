@@ -8,8 +8,8 @@
   --blue-bar: #fff;
   --accent: #fff;
   --accent-ink: #000;
-  --font-display: "Gruppo", sans-serif;
-  --font-body: "Gruppo", sans-serif;
+  --font-display: "Gochi Hand", "Patrick Hand", cursive;
+  --font-body: "Patrick Hand", "Gochi Hand", cursive;
 }
 
 *,
