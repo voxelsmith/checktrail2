@@ -1,21 +1,21 @@
 :root {
-  --ink: #3ec8ff;
-  --ink-2: #2eb8f6;
-  --panel: #fff6dc;
-  --line: #f0c040;
-  --text: #3a2108;
-  --muted: #7a5530;
-  --lime: #ffd24a;
-  --lime-ink: #3a2108;
-  --gold: #ffd24a;
-  --gold-deep: #c47a00;
-  --coral: #ff4d3a;
-  --sky: #1aa8f0;
-  --ok: #3dcc5a;
-  --shadow: 0 8px 0 #c47a00, 0 14px 24px rgba(60, 30, 0, 0.22);
+  --ink: #000;
+  --ink-2: #000;
+  --panel: #000;
+  --line: #fff;
+  --text: #fff;
+  --muted: #cfcfcf;
+  --lime: #fff;
+  --lime-ink: #000;
+  --gold: #fff;
+  --gold-deep: #fff;
+  --coral: #fff;
+  --sky: #fff;
+  --ok: #fff;
+  --shadow: none;
   --radius: 18px;
-  --font-display: "Lilita One", "Bebas Neue", sans-serif;
-  --font-body: "Nunito", "Outfit", system-ui, sans-serif;
+  --font-display: "Gochi Hand", "Patrick Hand", cursive;
+  --font-body: "Patrick Hand", "Gochi Hand", cursive;
 }
 
 *,
@@ -72,15 +72,11 @@ textarea,
 }
 
 .bg-glow {
-  background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, #b8f0ff 0%, transparent 58%),
-    radial-gradient(ellipse 50% 40% at 0% 18%, rgba(255, 255, 255, 0.55), transparent 50%),
-    radial-gradient(ellipse 45% 35% at 100% 12%, rgba(255, 210, 74, 0.4), transparent 48%),
-    linear-gradient(180deg, #5ad4ff 0%, #2eb8f6 38%, #7ee15a 72%, #4caf50 100%);
+  background: #000;
 }
 
 .bg-noise {
-  opacity: 0.04;
+  opacity: 0.14;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 

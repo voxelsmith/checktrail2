@@ -1,0 +1,271 @@
+/* Hand-drawn scribble skin: black ground, white ink, wobbly outlines. */
+
+:root {
+  --scribble: 255px 18px 225px 12px / 12px 225px 18px 255px;
+  --scribble-tight: 180px 12px 160px 10px / 10px 170px 12px 180px;
+  --ink: #000;
+  --text: #fff;
+  --muted: #cfcfcf;
+  --lime: #fff;
+  --lime-ink: #000;
+  --panel: #000;
+  --line: #fff;
+  --gold: #fff;
+  --accent: #fff;
+  --accent-ink: #000;
+  --btn-primary-bg: #fff;
+  --btn-primary-color: #000;
+  --font-display: "Gochi Hand", "Patrick Hand", cursive;
+  --font-body: "Patrick Hand", "Gochi Hand", cursive;
+}
+
+html,
+body,
+.hub {
+  background: #000 !important;
+  color: #fff !important;
+  font-family: var(--font-body) !important;
+  font-weight: 400 !important;
+}
+
+.bg-glow,
+.bg,
+.hub::before,
+.hub::after {
+  background: #000 !important;
+  box-shadow: none !important;
+}
+
+.bg-noise {
+  opacity: 0.12 !important;
+  mix-blend-mode: screen;
+}
+
+.brand,
+.brand-sm,
+.hub-brand,
+.hub-title,
+.home-title,
+.title,
+.section-title,
+.logo,
+.question,
+.picked-name,
+.vs,
+.card-name {
+  font-family: var(--font-display) !important;
+  color: #fff !important;
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+  font-weight: 400 !important;
+}
+
+.hub-sub,
+.home-sub,
+.section-sub,
+.sub,
+.hint,
+.muted,
+.card-desc,
+.waiting-note,
+.wheel-caption,
+.invite-room-label,
+.aside-label,
+.eyebrow,
+.field span,
+.label {
+  color: #cfcfcf !important;
+  text-shadow: none !important;
+  font-weight: 400 !important;
+}
+
+.hub-card,
+.btn,
+.btn-primary,
+.btn-ghost,
+.btn-danger,
+.btn-ok,
+.btn-lg,
+.btn-icon,
+.panel,
+.lobby-aside,
+.questions-aside,
+.action-panel,
+.player-pill,
+.player-list li,
+.room-chip,
+.timer-chip,
+.progress-chip,
+.category-badge,
+.nominee,
+.chart-card,
+.body-figure,
+.finals-question-card,
+.finals-side,
+.overlay-card,
+.reveal-panel,
+.standings li,
+.toast,
+.radio-pill,
+.score-chip,
+.trait-chip,
+.pot-choice,
+.ui-art-slot,
+.my-questions li,
+input[type="text"],
+textarea,
+.room-input,
+.field-box,
+.card,
+.chip,
+.ghost {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  border-radius: var(--scribble) !important;
+  box-shadow:
+    1px 2px 0 #fff,
+    -1px 0 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: none !important;
+}
+
+.hub-card {
+  transform: rotate(-0.5deg);
+}
+.hub-card--c2 {
+  transform: rotate(0.6deg);
+  box-shadow:
+    1px 2px 0 #fff,
+    -1px 0 0 rgba(255, 255, 255, 0.35) !important;
+}
+.hub-card:hover,
+.hub-card:active {
+  transform: rotate(0deg) translateY(-2px);
+}
+
+.hub-card-eyebrow,
+.badge {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  border-radius: var(--scribble-tight) !important;
+}
+
+.hub-card-name,
+.hub-card-desc,
+.hub-card-eyebrow {
+  color: #fff !important;
+}
+
+.btn-primary,
+.btn-ok {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.btn-danger {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.btn:hover:not(:disabled),
+.nominee:hover {
+  transform: rotate(-1deg);
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  box-shadow:
+    2px 2px 0 #fff,
+    -1px -1px 0 #fff !important;
+}
+
+.giant-buzzer-base {
+  background: #000 !important;
+  box-shadow: none !important;
+  border: 2px solid #fff;
+}
+
+.giant-buzzer-dome {
+  background: #000 !important;
+  box-shadow: none !important;
+  border: 3px solid #fff;
+}
+
+.giant-buzzer-label {
+  color: #fff !important;
+  text-shadow: none !important;
+}
+
+.giant-buzzer.lit .giant-buzzer-dome,
+.giant-buzzer:not(:disabled):active .giant-buzzer-dome {
+  background: #fff !important;
+  color: #000;
+}
+
+.giant-buzzer.lit .giant-buzzer-label,
+.giant-buzzer:not(:disabled):active .giant-buzzer-label {
+  color: #000 !important;
+}
+
+.giant-buzzer-hint {
+  color: #cfcfcf !important;
+  text-shadow: none !important;
+}
+
+.buzzer-name,
+.buzzer-score,
+.finals-timer,
+.stat,
+.stat-value,
+.invite-room-label strong,
+.score-chip strong,
+.pool-ready {
+  color: #fff !important;
+  text-shadow: none !important;
+}
+
+.nominee.selected {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.body-svg .part {
+  fill: #000 !important;
+  stroke: #fff !important;
+}
+
+.trait-bar {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.trait-bar > span {
+  background: #fff !important;
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.72) !important;
+}
+
+html.ui-style-outline .btn-primary,
+html.ui-style-soft .btn-primary {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #fff !important;
+  box-shadow: 1px 2px 0 #fff !important;
+}
+
+.wheel-pointer {
+  border-top-color: #fff !important;
+}
+
+.error-msg,
+.error,
+.skip-warn {
+  color: #fff !important;
+}
