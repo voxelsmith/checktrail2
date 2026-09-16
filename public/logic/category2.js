@@ -639,7 +639,7 @@
     ctx.setLineDash([4, 5]);
     ctx.lineWidth = 1;
     ctx.fillStyle = "#cfcfcf";
-    ctx.font = "16px Patrick Hand, Gochi Hand, cursive";
+    ctx.font = "16px Gruppo, sans-serif";
     ctx.textAlign = "right";
     ctx.textBaseline = "middle";
     for (let y = 0; y <= yMax; y += step) {
@@ -667,7 +667,7 @@
       ctx.fill();
 
       ctx.fillStyle = "#fff";
-      ctx.font = "16px Patrick Hand, Gochi Hand, cursive";
+      ctx.font = "16px Gruppo, sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.fillText(s.name.slice(0, 12), x + barW / 2, padT + plotH + 10);
