@@ -1,0 +1,138 @@
+/* Theme hooks applied from the separate UI editor export. */
+
+:root {
+  --btn-radius: 16px;
+  --btn-primary-bg: var(--lime, #ffd24a);
+  --btn-primary-color: var(--lime-ink, #3a2108);
+}
+
+.btn,
+.btn-icon,
+.hub-card {
+  border-radius: var(--btn-radius);
+}
+
+.btn {
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #ffe97a 0%, var(--btn-primary-bg) 48%, #e8a00a 100%);
+  color: var(--btn-primary-color);
+  border: 3px solid #fff3b0;
+  box-shadow:
+    0 6px 0 #c47a00,
+    0 10px 18px rgba(80, 40, 0, 0.28),
+    inset 0 2px 0 rgba(255, 255, 255, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow:
+    0 2px 0 #c47a00,
+    0 4px 8px rgba(80, 40, 0, 0.25),
+    inset 0 2px 0 rgba(255, 255, 255, 0.45);
+}
+
+html.ui-shape-pill {
+  --btn-radius: 999px;
+}
+
+html.ui-shape-rounded {
+  --btn-radius: 16px;
+}
+
+html.ui-shape-circle {
+  --btn-radius: 999px;
+}
+
+html.ui-shape-rect {
+  --btn-radius: 0;
+}
+
+html.ui-shape-hex .btn,
+html.ui-shape-hex .btn-icon,
+html.ui-shape-hex .hub-card {
+  clip-path: polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%);
+  border-radius: 0;
+}
+
+html.ui-shape-diamond .btn,
+html.ui-shape-diamond .btn-icon,
+html.ui-shape-diamond .hub-card {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  border-radius: 0;
+}
+
+html.ui-shape-blob .btn,
+html.ui-shape-blob .btn-icon,
+html.ui-shape-blob .hub-card {
+  clip-path: polygon(32% 4%, 70% 8%, 96% 32%, 92% 70%, 64% 96%, 28% 92%, 6% 64%, 8% 28%);
+  border-radius: 0;
+}
+
+html.ui-shape-star .btn,
+html.ui-shape-star .btn-icon,
+html.ui-shape-star .hub-card {
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  border-radius: 0;
+}
+
+html.ui-shape-triangle .btn,
+html.ui-shape-triangle .btn-icon,
+html.ui-shape-triangle .hub-card {
+  clip-path: polygon(50% 0%, 100% 100%, 0 100%);
+  border-radius: 0;
+}
+
+.ui-overlay {
+  pointer-events: none;
+}
+
+html.ui-style-outline .btn-primary {
+  background: transparent;
+  border: 3px solid var(--btn-primary-bg);
+  color: var(--btn-primary-bg);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--btn-primary-bg) 70%, #3a2108);
+  text-shadow: none;
+}
+
+html.ui-style-soft .btn-primary {
+  background: color-mix(in srgb, var(--btn-primary-bg) 28%, #fff8e7);
+  color: #3a2108;
+  border: 3px solid color-mix(in srgb, var(--btn-primary-bg) 65%, transparent);
+  box-shadow: 0 5px 0 color-mix(in srgb, var(--btn-primary-bg) 55%, #7a5530);
+}
+
+.ui-art-slot {
+  display: none;
+  width: 100%;
+  max-width: 420px;
+  height: 140px;
+  margin: 0 0 1.1rem;
+  border-radius: 22px;
+  border: 4px solid #ffd24a;
+  background: center / cover no-repeat #fff6dc;
+  box-shadow: 0 6px 0 #c47a00;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ui-art-slot.is-on {
+  display: flex;
+}
+
+.ui-art-placeholder {
+  display: none;
+}
+
+.join-row .field {
+  margin: 0;
+}
+
+.join-row .field span[hidden] {
+  display: none;
+}

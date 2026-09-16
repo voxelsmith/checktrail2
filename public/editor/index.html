@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checktrail UI Editor</title>
+  <script>
+    (function () {
+      var hosted = location.pathname.indexOf("/editor") === 0;
+      document.write('<base href="' + (hosted ? "/editor/" : "./") + '">');
+    })();
+  </script>
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0d99ff" />
+  <link rel="icon" href="./icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&family=Bebas+Neue&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="brand">
+        <strong>Checktrail UI Editor</strong>
+        <span>Separate Chrome app · design the mobile game here, then export into the game</span>
+      </div>
+      <div class="actions">
+        <button type="button" id="btn-undo">Undo</button>
+        <button type="button" id="btn-reset">Reset</button>
+        <label class="file-btn">Import JSON<input type="file" id="import-json" accept="application/json" hidden /></label>
+        <button type="button" id="btn-export" class="primary">Export to game</button>
+      </div>
+    </header>
+
+    <div class="body">
+      <aside class="side" id="pages"></aside>
+      <main class="canvas">
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen" id="phone"></div>
+        </div>
+        <p class="hint">This is only a design preview. Players never see this app. Click anything on the phone to edit it.</p>
+      </main>
+      <aside class="inspector" id="inspector"></aside>
+    </div>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>

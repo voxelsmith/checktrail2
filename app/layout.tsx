@@ -17,8 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body style={{ margin: 0 }}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="stylesheet" href="/ui/theme/overrides.css" />
+        <script src="/ui/theme/apply-theme.js" />
+      </head>
+      <body style={{ margin: 0, background: "#3ec8ff" }}>{children}</body>
     </html>
   );
 }

@@ -82,8 +82,8 @@
   };
 
   const WHEEL_COLORS = [
-    "#c8f542", "#3ec6ff", "#ffb020", "#ff5a4a",
-    "#7c5cff", "#3dff9a", "#ff7ad9", "#ffe566",
+    "#ffd24a", "#3ec6ff", "#ff7a18", "#ff4d3a",
+    "#4da3ff", "#3dcc5a", "#ff7ad9", "#ffe566",
   ];
 
   /** @type {GameState} */
@@ -1258,7 +1258,7 @@
     // outer ring
     ctx.beginPath();
     ctx.arc(cx, cy, radius + 4, 0, Math.PI * 2);
-    ctx.fillStyle = "#0a1520";
+    ctx.fillStyle = "#c47a00";
     ctx.fill();
 
     for (let i = 0; i < n; i++) {
@@ -1279,7 +1279,7 @@
         cx + Math.cos(start) * radius,
         cy + Math.sin(start) * radius
       );
-      ctx.strokeStyle = "rgba(7, 16, 24, 0.35)";
+      ctx.strokeStyle = "rgba(90, 42, 0, 0.35)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
@@ -1288,8 +1288,8 @@
       ctx.translate(cx, cy);
       ctx.rotate(start + arc / 2);
       ctx.textAlign = "right";
-      ctx.fillStyle = "#071018";
-      ctx.font = `bold ${Math.max(13, 26 - n * 0.8)}px Outfit, sans-serif`;
+      ctx.fillStyle = "#3a2108";
+      ctx.font = `bold ${Math.max(13, 26 - n * 0.8)}px Nunito, Outfit, sans-serif`;
       const label = (players[i]?.name || "?").slice(0, 10);
       ctx.fillText(label, radius - 18, 5);
       ctx.restore();
@@ -1298,11 +1298,11 @@
     // hub
     ctx.beginPath();
     ctx.arc(cx, cy, 34, 0, Math.PI * 2);
-    ctx.fillStyle = "#071018";
+    ctx.fillStyle = "#fff8e7";
     ctx.fill();
     ctx.beginPath();
     ctx.arc(cx, cy, 22, 0, Math.PI * 2);
-    ctx.fillStyle = "#ffb020";
+    ctx.fillStyle = "#ffd24a";
     ctx.fill();
   }
 
