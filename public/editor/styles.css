@@ -337,7 +337,7 @@ html.ui-shape-triangle .btn, html.ui-shape-triangle .ghost, html.ui-shape-triang
   min-height: 100%;
   padding: 28px 18px 24px;
   color: var(--text, #fff);
-  font-family: "Patrick Hand", "Gochi Hand", cursive;
+  font-family: "Gruppo", sans-serif;
   font-weight: 400;
   background: var(--bg, #000);
 }
@@ -372,7 +372,7 @@ html.ui-shape-triangle .btn, html.ui-shape-triangle .ghost, html.ui-shape-triang
   text-transform: uppercase;
 }
 .logo {
-  font-family: "Gochi Hand", "Patrick Hand", cursive;
+  font-family: "Gruppo", sans-serif;
   font-size: 64px;
   line-height: .9;
   margin: 0;
@@ -380,7 +380,7 @@ html.ui-shape-triangle .btn, html.ui-shape-triangle .ghost, html.ui-shape-triang
   transform: rotate(-1deg);
 }
 .title {
-  font-family: "Gochi Hand", "Patrick Hand", cursive;
+  font-family: "Gruppo", sans-serif;
   font-size: 34px;
   margin: 8px 0;
   color: #fff;
@@ -399,7 +399,7 @@ html.ui-shape-triangle .btn, html.ui-shape-triangle .ghost, html.ui-shape-triang
   box-shadow: 1px 2px 0 #fff;
 }
 .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #fff; }
-.card-name { display: block; margin-top: 4px; font-family: "Gochi Hand", "Patrick Hand", cursive; }
+.card-name { display: block; margin-top: 4px; font-family: "Gruppo", sans-serif; }
 .card-desc { display: block; margin-top: 4px; color: #cfcfcf; font-size: 15px; }
 .label { display: block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #cfcfcf; margin-bottom: 6px; }
 .field-box {

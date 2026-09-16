@@ -15,7 +15,7 @@
     max(1rem, env(safe-area-inset-right))
     max(1.5rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-left));
-  font-family: "Patrick Hand", "Gochi Hand", cursive;
+  font-family: "Gruppo", sans-serif;
   color: #fff;
   background: #000;
   -webkit-tap-highlight-color: transparent;
@@ -30,7 +30,7 @@
 
 .hub-brand {
   margin: 0 0 0.75rem;
-  font-family: "Gochi Hand", "Patrick Hand", cursive;
+  font-family: "Gruppo", sans-serif;
   font-size: clamp(2.9rem, 14vw, 5.4rem);
   letter-spacing: 0.02em;
   color: #fff;
@@ -39,7 +39,7 @@
 }
 
 .hub-title {
-  font-family: "Gochi Hand", "Patrick Hand", cursive;
+  font-family: "Gruppo", sans-serif;
   font-size: clamp(1.85rem, 8vw, 3.1rem);
   letter-spacing: 0.01em;
   margin: 0 0 0.5rem;
@@ -100,7 +100,7 @@
 
 .hub-card-name {
   display: block;
-  font-family: "Gochi Hand", "Patrick Hand", cursive;
+  font-family: "Gruppo", sans-serif;
   font-size: clamp(1.45rem, 5.4vw, 1.85rem);
 }
 
