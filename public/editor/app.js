@@ -600,8 +600,8 @@ function screensHtml() {
         <div class="topbar"><strong>Anon Wheel</strong><span class="badge" data-ui="c1.finals.tag" data-ui-type="text">${textOf("c1.finals.tag")}</span></div>
         <div class="buzzers"><div class="buzzer">Alex<br/>4</div><div>VS</div><div class="buzzer">Sam<br/>3</div></div>
         <p class="title">Who would eat dessert first?</p>
-        <button class="btn">Correct</button>
-        <button class="ghost">Wrong</button>
+        <div class="buzzer" style="margin:12px auto;width:120px;height:120px;border-radius:50%;display:grid;place-items:center">BUZZ</div>
+        <button class="btn">I answered</button>
         ${overlayHtml()}
       </div>`,
     "c1-end": `
