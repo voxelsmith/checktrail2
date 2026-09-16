@@ -1,5 +1,12 @@
 /* Placeholder hub styles — replace freely. Keep class names used by app/page.tsx. */
 
+:root {
+  --ink: #071018;
+  --text: #e8f4ff;
+  --muted: #8aa3b5;
+  --lime: #c8f542;
+}
+
 .hub {
   min-height: 100dvh;
   margin: 0;
@@ -9,11 +16,11 @@
     max(1.5rem, env(safe-area-inset-bottom))
     max(1rem, env(safe-area-inset-left));
   font-family: "Outfit", system-ui, sans-serif;
-  color: #e8f4ff;
+  color: var(--text, #e8f4ff);
   background:
-    radial-gradient(ellipse 70% 50% at 15% 10%, rgba(200, 245, 66, 0.14), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 15% 10%, color-mix(in srgb, var(--lime, #c8f542) 14%, transparent), transparent 55%),
     radial-gradient(ellipse 60% 45% at 90% 20%, rgba(47, 95, 173, 0.18), transparent 50%),
-    #071018;
+    var(--ink, #071018);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -27,7 +34,7 @@
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(2.75rem, 14vw, 5rem);
   letter-spacing: 0.06em;
-  color: #c8f542;
+  color: var(--lime, #c8f542);
   line-height: 0.9;
 }
 
@@ -40,7 +47,7 @@
 }
 
 .hub-sub {
-  color: #8aa3b5;
+  color: var(--muted, #8aa3b5);
   margin: 0 0 1.75rem;
   max-width: 36ch;
   line-height: 1.45;
@@ -82,7 +89,7 @@
 }
 
 .hub-card--c1 .hub-card-eyebrow {
-  color: #c8f542;
+  color: var(--lime, #c8f542);
 }
 
 .hub-card--c2 .hub-card-eyebrow {
@@ -102,7 +109,7 @@
 }
 
 .hub-card--c1 .hub-card-desc {
-  color: #8aa3b5;
+  color: var(--muted, #8aa3b5);
 }
 
 .hub-card--c2 .hub-card-desc {

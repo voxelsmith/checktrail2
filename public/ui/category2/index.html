@@ -8,28 +8,36 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/ui/category2/styles.css" />
+  <link rel="stylesheet" href="/ui/theme/overrides.css" />
+  <script src="/ui/theme/apply-theme.js"></script>
 </head>
 <body>
   <div class="bg" aria-hidden="true"></div>
   <div id="app">
     <!-- HOME -->
-    <section id="screen-home" class="screen active">
+    <section id="screen-home" class="screen active" data-ui="c2.home.screen" data-ui-type="screen">
       <div class="stage">
-        <p class="category-badge">Category 2</p>
-        <p class="brand">Mirror Vote</p>
-        <h1 class="title">Who fits the question?</h1>
-        <p class="sub">Same questions, different order. Pick anonymously. See how the room sees each other — and you.</p>
+        <div class="ui-art-slot" data-ui="c2.home.art" data-ui-type="image">
+          <span class="ui-art-placeholder">Add a cover image</span>
+        </div>
+        <p class="category-badge" data-ui="c2.home.badge" data-ui-type="text">Category 2</p>
+        <p class="brand" data-ui="c2.home.brand" data-ui-type="text">Mirror Vote</p>
+        <h1 class="title" data-ui="c2.home.title" data-ui-type="text">Who fits the question?</h1>
+        <p class="sub" data-ui="c2.home.sub" data-ui-type="text">Same questions, different order. Pick anonymously. See how the room sees each other — and you.</p>
 
         <form id="home-form" class="form">
-          <label class="field">
+          <label class="field" data-ui="c2.home.name" data-ui-type="field">
             <span>Your name</span>
             <input id="player-name" type="text" maxlength="18" placeholder="Your name" required autocomplete="nickname" />
           </label>
           <div class="actions">
-            <button type="submit" class="btn btn-primary" id="btn-create">Create room</button>
+            <button type="submit" class="btn btn-primary" id="btn-create" data-ui="c2.home.create" data-ui-type="button">Create room</button>
             <div class="join-row">
-              <input id="room-code" type="text" maxlength="6" placeholder="ROOM" class="room-input" autocomplete="off" />
-              <button type="button" class="btn btn-ghost" id="btn-join">Join</button>
+              <label class="field" data-ui="c2.home.room" data-ui-type="field" style="margin:0">
+                <span hidden>Room code</span>
+                <input id="room-code" type="text" maxlength="6" placeholder="ROOM" class="room-input" autocomplete="off" />
+              </label>
+              <button type="button" class="btn btn-ghost" id="btn-join" data-ui="c2.home.join" data-ui-type="button">Join</button>
             </div>
           </div>
         </form>
@@ -39,64 +47,64 @@
     </section>
 
     <!-- LOBBY -->
-    <section id="screen-lobby" class="screen">
+    <section id="screen-lobby" class="screen" data-ui="c2.lobby.screen" data-ui-type="screen">
       <header class="topbar">
         <p class="brand-sm">Category 2</p>
         <div class="room-chip">
           <span>Room</span>
           <strong id="lobby-code">————</strong>
-          <button type="button" class="btn-icon" id="btn-copy">Copy link</button>
+          <button type="button" class="btn-icon" id="btn-copy" data-ui="c2.lobby.copy" data-ui-type="button">Copy link</button>
         </div>
       </header>
       <div class="split">
         <div>
-          <h2 class="section-title">Players</h2>
-          <p class="sub">When everyone’s in, the host starts. Each person gets the questions shuffled differently.</p>
+          <h2 class="section-title" data-ui="c2.lobby.title" data-ui-type="text">Players</h2>
+          <p class="sub" data-ui="c2.lobby.sub" data-ui-type="text">When everyone’s in, the host starts. Each person gets the questions shuffled differently.</p>
           <ul id="player-list" class="player-list"></ul>
         </div>
         <aside class="panel">
           <p class="aside-label" id="lobby-status">Waiting…</p>
-          <button type="button" class="btn btn-primary btn-lg" id="btn-start" hidden>Start voting</button>
+          <button type="button" class="btn btn-primary btn-lg" id="btn-start" hidden data-ui="c2.lobby.start" data-ui-type="button">Start voting</button>
           <p class="hint" id="lobby-hint">Need at least 2 players.</p>
         </aside>
       </div>
     </section>
 
     <!-- PLAY -->
-    <section id="screen-play" class="screen">
+    <section id="screen-play" class="screen" data-ui="c2.play.screen" data-ui-type="screen">
       <header class="topbar">
         <p class="brand-sm">Category 2</p>
         <div class="progress-chip" id="progress-chip">1 / 20</div>
       </header>
       <div class="play-stage">
-        <p class="eyebrow">Who is most likely…</p>
+        <p class="eyebrow" data-ui="c2.play.eyebrow" data-ui-type="text">Who is most likely…</p>
         <h2 class="question" id="question-text">—</h2>
-        <p class="sub">Tap the player who fits best. Your vote stays anonymous.</p>
+        <p class="sub" data-ui="c2.play.help" data-ui-type="text">Tap the player who fits best. Your vote stays anonymous.</p>
         <div id="nominee-grid" class="nominee-grid"></div>
       </div>
     </section>
 
     <!-- WAITING -->
-    <section id="screen-wait" class="screen">
+    <section id="screen-wait" class="screen" data-ui="c2.wait.screen" data-ui-type="screen">
       <div class="stage center">
         <p class="category-badge">Category 2</p>
-        <h2 class="section-title">You’re done</h2>
-        <p class="sub" id="wait-copy">Waiting for everyone else to finish their shuffled deck…</p>
+        <h2 class="section-title" data-ui="c2.wait.title" data-ui-type="text">You’re done</h2>
+        <p class="sub" id="wait-copy" data-ui="c2.wait.copy" data-ui-type="text">Waiting for everyone else to finish their shuffled deck…</p>
         <p class="stat" id="wait-stat">0 / 0 votes in</p>
       </div>
     </section>
 
     <!-- RESULTS -->
-    <section id="screen-results" class="screen">
+    <section id="screen-results" class="screen" data-ui="c2.results.screen" data-ui-type="screen">
       <header class="topbar">
         <p class="brand-sm">Category 2 · Results</p>
       </header>
       <div class="results-wrap">
-        <h2 class="section-title">Votes per question</h2>
+        <h2 class="section-title" data-ui="c2.results.title" data-ui-type="text">Votes per question</h2>
         <p class="sub">Each chart shows how many people named each player for that prompt.</p>
         <div id="charts" class="charts"></div>
 
-        <h2 class="section-title body-title">How the room built you</h2>
+        <h2 class="section-title body-title" data-ui="c2.results.bodyTitle" data-ui-type="text">How the room built you</h2>
         <p class="sub">A portrait from the traits people assigned to you.</p>
         <div class="body-layout">
           <div class="body-figure" id="body-figure" aria-hidden="true">
@@ -122,8 +130,6 @@
     <div id="toast" class="toast" hidden></div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/logic/supabase-config.js"></script>
-  <script src="/logic/category2.js"></script>
+  <script src="/ui/theme/preview-bridge.js" data-logic="/logic/category2.js"></script>
 </body>
 </html>

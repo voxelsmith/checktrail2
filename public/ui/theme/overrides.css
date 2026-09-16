@@ -1,0 +1,113 @@
+/* Visual editor hooks. Game logic does not depend on these. */
+
+:root {
+  --btn-radius: 999px;
+  --btn-primary-bg: var(--lime, #c8f542);
+  --btn-primary-color: var(--lime-ink, #102000);
+  --field-radius: 12px;
+  --field-bg: rgba(18, 36, 51, 0.85);
+}
+
+.btn,
+.btn-icon,
+.hub-card {
+  border-radius: var(--btn-radius);
+}
+
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-color);
+}
+
+html.ui-shape-rounded {
+  --btn-radius: 14px;
+}
+
+html.ui-shape-square {
+  --btn-radius: 6px;
+}
+
+html.ui-style-outline .btn-primary {
+  background: transparent;
+  border: 2px solid var(--btn-primary-bg);
+  color: var(--btn-primary-bg);
+}
+
+html.ui-style-soft .btn-primary {
+  background: color-mix(in srgb, var(--btn-primary-bg) 22%, transparent);
+  color: var(--btn-primary-bg);
+  border: 1px solid color-mix(in srgb, var(--btn-primary-bg) 45%, transparent);
+}
+
+.ui-art-slot {
+  display: none;
+  width: 100%;
+  max-width: 420px;
+  height: 140px;
+  margin: 0 0 1.1rem;
+  border-radius: 18px;
+  background: center / cover no-repeat;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ui-art-slot.is-on,
+html.studio-preview .ui-art-slot {
+  display: flex;
+}
+
+.ui-art-placeholder {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(8, 16, 24, 0.45);
+  border: 1.5px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 18px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-art-slot.is-on .ui-art-placeholder {
+  display: none;
+}
+
+html.studio-preview [data-ui] {
+  cursor: pointer;
+  outline: 1.5px solid transparent;
+  outline-offset: 3px;
+}
+
+html.studio-preview [data-ui]:hover {
+  outline-color: rgba(13, 153, 255, 0.7);
+}
+
+html.studio-preview [data-ui].ui-selected {
+  outline: 2px solid #0d99ff;
+  outline-offset: 3px;
+}
+
+.join-row .field {
+  margin: 0;
+}
+
+.join-row .field span[hidden] {
+  display: none;
+}
+
+html.studio-preview .studio-entry {
+  display: none !important;
+}
+
+.studio-entry {
+  display: inline-block;
+  margin-top: 1.5rem;
+  color: inherit;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
