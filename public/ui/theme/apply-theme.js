@@ -55,6 +55,7 @@
     }
     var type = el.getAttribute("data-ui-type") || "text";
     if (node.color) el.style.color = node.color;
+    if (node.bg && (type === "text" || type === "field")) el.style.background = node.bg;
     if (type === "text" && typeof node.text === "string") {
       el.innerHTML = node.text.replace(/\n/g, "<br />");
     }
@@ -107,6 +108,7 @@
       el.style.clipPath = clip;
       el.style.overflow = "hidden";
     }
+    if (node.bg) el.style.backgroundColor = node.bg;
     applyImage(el, node);
     if (node.opacity != null) el.style.opacity = String(node.opacity / 100);
     if (type === "screen") {
@@ -148,7 +150,7 @@
         var clip = clipCss(ov);
         if (clip) el.style.clipPath = clip;
         if (ov.kind === "text") {
-          el.style.background = "transparent";
+          el.style.background = ov.fill || "transparent";
           el.style.color = ov.color || "#e8f4ff";
           el.style.fontSize = (ov.fontSize || 24) + "px";
           el.style.fontWeight = "700";
@@ -159,6 +161,7 @@
           el.style.padding = "4px 8px";
           el.textContent = ov.text || "";
         } else if (ov.kind === "image") {
+          if (ov.fill) el.style.backgroundColor = ov.fill;
           if (ov.image) applyImage(el, ov);
         } else if (ov.kind === "sprite" && ov.image) {
           if (ov.animated === "gif") {

@@ -206,6 +206,7 @@ let screenId = "hub";
 let selectedId = "hub.brand";
 let selectedOverlay = null;
 let drag = null;
+let colorDrag = null;
 
 function textOf(id) {
   const n = theme.nodes[id] || {};
@@ -234,6 +235,151 @@ function commit(next) {
 
 function patchGlobal(partial) {
   commit({ ...theme, global: { ...theme.global, ...partial } });
+}
+
+function patchGlobalLive(partial) {
+  theme = { ...theme, global: { ...theme.global, ...partial } };
+  save();
+  renderPhone();
+}
+
+function normalizeHex(value) {
+  if (!value) return "";
+  let hex = String(value).trim();
+  if (hex[0] !== "#") hex = "#" + hex;
+  if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
+    hex = "#" + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+  }
+  return /^#[0-9a-fA-F]{6}$/.test(hex) ? hex.toLowerCase() : "";
+}
+
+function hexToHsv(hex) {
+  hex = normalizeHex(hex) || "#ffffff";
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s: max ? d / max : 0, v: max };
+}
+
+function hsvToHex(h, s, v) {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  if (h < 60) { r = c; g = x; }
+  else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; }
+  else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; }
+  else { r = c; b = x; }
+  const to = (n) => Math.round((n + m) * 255).toString(16).padStart(2, "0");
+  return "#" + to(r) + to(g) + to(b);
+}
+
+function colorField(id, label, value, optional) {
+  const hex = normalizeHex(value) || (optional ? "" : "#ffffff");
+  const swatch = hex || "transparent";
+  return `<div class="field"><span>${label}</span>
+    <div class="color-wrap" data-color-id="${id}">
+      <button type="button" class="color-swatch${hex ? "" : " empty"}" data-color-toggle="${id}" style="background:${swatch}" title="Open color picker"></button>
+      <input class="color-hex" id="${id}-hex" value="${hex}" spellcheck="false" placeholder="#RRGGBB">
+      ${optional ? `<button type="button" class="color-clear" data-color-clear="${id}">None</button>` : ""}
+      <div class="color-pop" id="${id}-pop" hidden>
+        <div class="sv" data-sv="${id}"><i class="sv-cursor"></i></div>
+        <input type="range" class="hue" data-hue="${id}" min="0" max="360" value="0">
+        <p class="hint">This picker stays open while you drag. Click Done when you like the color.</p>
+        <button type="button" data-color-done="${id}">Done</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindColorField(id, apply, optional) {
+  const wrap = document.querySelector('[data-color-id="' + id + '"]');
+  if (!wrap) return;
+  const swatch = wrap.querySelector(".color-swatch");
+  const hexInput = wrap.querySelector(".color-hex");
+  const pop = wrap.querySelector(".color-pop");
+  const sv = wrap.querySelector(".sv");
+  const cursor = wrap.querySelector(".sv-cursor");
+  const hue = wrap.querySelector(".hue");
+  let hsv = hexToHsv(hexInput.value || "#c8f542");
+
+  function layout() {
+    sv.style.background = "linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(" + hsv.h + ",100%,50%))";
+    cursor.style.left = (hsv.s * 100) + "%";
+    cursor.style.top = ((1 - hsv.v) * 100) + "%";
+    hue.value = String(Math.round(hsv.h));
+  }
+
+  function paint(emit) {
+    const hex = hsvToHex(hsv.h, hsv.s, hsv.v);
+    swatch.style.background = hex;
+    swatch.classList.remove("empty");
+    hexInput.value = hex;
+    layout();
+    if (emit) apply(hex);
+  }
+
+  function svFromEvent(event) {
+    const rect = sv.getBoundingClientRect();
+    hsv.s = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+    hsv.v = Math.max(0, Math.min(1, 1 - (event.clientY - rect.top) / rect.height));
+    paint(true);
+  }
+
+  swatch.onclick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    document.querySelectorAll(".color-pop").forEach((item) => {
+      if (item !== pop) item.hidden = true;
+    });
+    pop.hidden = !pop.hidden;
+    if (!pop.hidden) {
+      if (normalizeHex(hexInput.value)) paint(false);
+      else layout();
+    }
+  };
+  hexInput.oninput = () => {
+    const hex = normalizeHex(hexInput.value);
+    if (!hex) return;
+    hsv = hexToHsv(hex);
+    paint(true);
+  };
+  hue.oninput = () => {
+    hsv.h = Number(hue.value);
+    paint(true);
+  };
+  sv.onmousedown = (event) => {
+    event.preventDefault();
+    colorDrag = svFromEvent;
+    svFromEvent(event);
+  };
+  const done = wrap.querySelector("[data-color-done]");
+  if (done) done.onclick = () => { pop.hidden = true; };
+  const clear = wrap.querySelector("[data-color-clear]");
+  if (clear) clear.onclick = () => {
+    hexInput.value = "";
+    swatch.style.background = "transparent";
+    swatch.classList.add("empty");
+    pop.hidden = true;
+    apply("");
+  };
+  if (normalizeHex(hexInput.value)) paint(false);
+  else layout();
 }
 
 function patchNode(partial, refresh) {
@@ -304,7 +450,7 @@ function visualCss(id) {
   const clip = clipCss(n);
   if (clip) parts.push(`clip-path:${clip}`);
   else if (n.shape) parts.push("clip-path:none");
-  if (n.bg) parts.push(`background:${n.bg}`);
+  if (n.bg) parts.push(`background-color:${n.bg}`);
   if (n.color) parts.push(`color:${n.color}`);
   if (n.image) parts.push(imageCss(n));
   if (n.shadow) parts.push("box-shadow:0 10px 24px rgba(0,0,0,.35)");
@@ -370,9 +516,13 @@ function overlayVisualCss(ov) {
   if (ov.kind === "text") {
     const align = ov.align || "left";
     const justify = align === "right" ? "flex-end" : align === "center" ? "center" : "flex-start";
-    return `background:transparent;color:${ov.color || theme.global.text};font-size:${ov.fontSize || 24}px;text-align:${align};justify-content:${justify};`;
+    return `background:${ov.fill || "transparent"};color:${ov.color || theme.global.text};font-size:${ov.fontSize || 24}px;text-align:${align};justify-content:${justify};`;
   }
-  if (ov.kind === "image") return ov.image ? imageCss(ov) : "";
+  if (ov.kind === "image") {
+    if (ov.image) return (ov.fill ? `background-color:${ov.fill};` : "") + imageCss(ov);
+    if (ov.fill) return `background:${ov.fill}`;
+    return "";
+  }
   if (ov.kind === "sprite") return spriteStyle(ov);
   if (ov.image) return imageCss(ov);
   return `background:${ov.fill || theme.global.accent}`;
@@ -390,8 +540,8 @@ function overlayHtml() {
       : "";
     const inner = ov.kind === "text"
       ? escapeHtml(ov.text || "New text")
-      : ov.kind === "image" && !ov.image ? "Image" : "";
-    const klass = ov.kind === "text" ? " overlay-text" : ov.kind === "image" && !ov.image ? " overlay-image-empty" : "";
+      : ov.kind === "image" && !ov.image && !ov.fill ? "Image" : "";
+    const klass = ov.kind === "text" ? " overlay-text" : ov.kind === "image" && !ov.image && !ov.fill ? " overlay-image-empty" : "";
     return `<div class="overlay-wrap${selected}" data-overlay="${ov.id}" style="left:${ov.x}%;top:${ov.y}%;width:${ov.w}px;height:${ov.h}px;opacity:${(ov.opacity ?? 100) / 100}">
       <div class="overlay-visual${klass}" style="border-radius:${radius};${clip ? `clip-path:${clip};` : ""}${extra}">${inner}</div>
       ${handles}
@@ -680,7 +830,8 @@ function renderInspector() {
   let body = `
     <p class="group">Looks</p>
     <div class="row">${Object.keys(PRESETS).map((id) => `<button data-preset="${id}">${id}</button>`).join("")}</div>
-    <div class="field"><span>Accent</span><div class="color"><input type="color" id="accent" value="${g.accent}"></div></div>
+    ${colorField("page-bg", "Page background", g.bg)}
+    ${colorField("accent", "Accent", g.accent)}
     <div class="field"><span>Default button shape</span>${shapeButtons(g.buttonShape, "global")}</div>
     <div class="field"><span>Button style</span><div class="row">
       ${["fill", "outline", "soft"].map((s) => `<button data-style="${s}" class="${g.buttonStyle === s ? "active" : ""}">${s}</button>`).join("")}
@@ -693,19 +844,21 @@ function renderInspector() {
         <div class="field"><span>Text</span><textarea id="ov-text">${overlay.text || ""}</textarea></div>
         <div class="field"><span>Align</span>${alignButtons(overlay.align)}</div>
         ${slider("ov-fontsize", "Size", 12, 72, overlay.fontSize || 24)}
-        <div class="field"><span>Color</span><div class="color"><input type="color" id="ov-color" value="${overlay.color || g.text}"></div></div>
+        ${colorField("ov-color", "Text color", overlay.color || g.text)}
+        ${colorField("ov-fill", "Solid background", overlay.fill, true)}
         ${slider("ov-w", "Width", 40, 360, overlay.w || 220)}
         ${slider("ov-h", "Height", 24, 240, overlay.h || 52)}`;
     } else if (overlay.kind === "image") {
       body += `
         ${slider("ov-w", "Width", 40, 360, overlay.w || 168)}
         ${slider("ov-h", "Height", 40, 360, overlay.h || 112)}
+        ${colorField("ov-fill", "Solid background", overlay.fill, true)}
         ${imageControls(overlay, "ov")}`;
     } else {
       body += `
         ${overlay.kind === "shape" ? `<div class="field"><span>Shape</span>${shapeButtons(overlay.shape || "rect", "overlay")}</div>` : ""}
         ${clipField(overlay, "ov-clip")}
-        <div class="field"><span>Fill</span><div class="color"><input type="color" id="ov-fill" value="${overlay.fill || g.accent}"></div></div>
+        ${colorField("ov-fill", "Solid background", overlay.fill || g.accent)}
         ${slider("ov-w", "Width", 24, 320, overlay.w || 80)}
         ${slider("ov-h", "Height", 24, 320, overlay.h || 80)}
         ${slider("ov-radius", "Corner radius", 0, 160, overlay.radius ?? 12)}
@@ -743,8 +896,12 @@ function renderInspector() {
           <input id="r-bl" type="number" min="0" max="80" value="${n.bl ?? n.radius ?? 16}" title="Bottom left">
           <input id="r-br" type="number" min="0" max="80" value="${n.br ?? n.radius ?? 16}" title="Bottom right">
         </div></div>` : ""}
-      <div class="field"><span>Text color</span><div class="color"><input type="color" id="node-color" value="${n.color || g.text}"></div></div>
-      ${type === "button" || type === "screen" ? `<div class="field"><span>Fill color</span><div class="color"><input type="color" id="node-bg" value="${n.bg || g.accent}"></div></div>` : ""}
+      ${colorField("node-color", "Text color", n.color || g.text)}
+      ${type === "button"
+        ? colorField("node-bg", "Solid background", n.bg || g.accent)
+        : type === "screen"
+          ? colorField("node-bg", "Solid background", n.bg || g.bg)
+          : colorField("node-bg", "Solid background", n.bg, true)}
       ${type === "image" || type === "screen" || type === "button" ? imageControls(n, "node") : ""}
       ${type === "button" ? `<label class="check"><input type="checkbox" id="node-shadow" ${n.shadow ? "checked" : ""}> Drop shadow</label>` : ""}
       ${type !== "screen" ? `<button type="button" id="node-delete" class="danger">Delete layer</button>` : ""}`;
@@ -764,6 +921,7 @@ function applyVisualsToPhone() {
       return;
     }
     if (n.color) el.style.color = n.color;
+    if (n.bg && (type === "text" || type === "field")) el.style.background = n.bg;
     applyAlign(el, n, type);
     if (type === "text" || type === "field") {
       el.classList.toggle("selected", !selectedOverlay && id === selectedId);
@@ -907,12 +1065,10 @@ function bind() {
   if (text) text.oninput = () => patchNode({ text: text.value });
   const placeholder = document.getElementById("node-placeholder");
   if (placeholder) placeholder.oninput = () => patchNode({ placeholder: placeholder.value });
-  const accent = document.getElementById("accent");
-  if (accent) accent.oninput = () => patchGlobal({ accent: accent.value });
-  const nodeColor = document.getElementById("node-color");
-  if (nodeColor) nodeColor.oninput = () => patchNode({ color: nodeColor.value });
-  const nodeBg = document.getElementById("node-bg");
-  if (nodeBg) nodeBg.oninput = () => patchNode({ bg: nodeBg.value });
+  bindColorField("page-bg", (hex) => patchGlobalLive({ bg: hex }));
+  bindColorField("accent", (hex) => patchGlobalLive({ accent: hex }));
+  bindColorField("node-color", (hex) => patchNode({ color: hex }));
+  bindColorField("node-bg", (hex) => patchNode({ bg: hex }));
   liveSlider("node-radius", "radius", null);
   const link = document.getElementById("link-corners");
   if (link) link.onchange = () => patchNode({ linkCorners: link.checked });
@@ -930,11 +1086,9 @@ function bind() {
   if (overlay) {
     const ovText = document.getElementById("ov-text");
     if (ovText) ovText.oninput = () => patchOverlay({ text: ovText.value });
-    const ovColor = document.getElementById("ov-color");
-    if (ovColor) ovColor.oninput = () => patchOverlay({ color: ovColor.value });
+    bindColorField("ov-color", (hex) => patchOverlay({ color: hex }));
+    bindColorField("ov-fill", (hex) => patchOverlay({ fill: hex }));
     liveSlider("ov-fontsize", "fontSize", overlay);
-    const fill = document.getElementById("ov-fill");
-    if (fill) fill.oninput = () => patchOverlay({ fill: fill.value });
     liveSlider("ov-w", "w", overlay);
     liveSlider("ov-h", "h", overlay);
     liveSlider("ov-radius", "radius", overlay);
@@ -1016,6 +1170,7 @@ function applyDragBox(el, box) {
 }
 
 document.addEventListener("mousemove", (event) => {
+  if (colorDrag) colorDrag(event);
   if (!drag) return;
   const el = document.querySelector('[data-overlay="' + drag.id + '"]');
   if (drag.type === "resize") {
@@ -1054,6 +1209,7 @@ document.addEventListener("mousemove", (event) => {
   applyDragBox(el, drag.live);
 });
 document.addEventListener("mouseup", () => {
+  colorDrag = null;
   if (drag && drag.live) {
     selectedOverlay = drag.id;
     patchOverlay(drag.live, true);
