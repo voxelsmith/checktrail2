@@ -316,11 +316,12 @@ html.ui-shape-triangle .btn, html.ui-shape-triangle .ghost, html.ui-shape-triang
 }
 .hue {
   width: 100%;
-  accent-color: #fff;
-  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
   height: 14px;
+  padding: 0;
+  border: 0;
   border-radius: 999px;
   appearance: none;
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
 }
 .hue::-webkit-slider-thumb {
   appearance: none;
