@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "editor": "npx --yes serve editor -p 4173"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

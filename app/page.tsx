@@ -50,9 +50,6 @@ export default function Page() {
               </span>
             </Link>
           </div>
-          <a className="studio-entry" href="/studio">
-            Customize look →
-          </a>
         </div>
       </main>
     </>

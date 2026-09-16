@@ -1,0 +1,17 @@
+{
+  "name": "Checktrail UI Editor",
+  "short_name": "UI Editor",
+  "description": "Separate Chrome app for designing Checktrail's mobile UI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#0d99ff",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

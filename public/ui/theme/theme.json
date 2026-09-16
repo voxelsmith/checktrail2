@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "global": {
+    "accent": "#c8f542",
+    "accentInk": "#102000",
+    "bg": "#071018",
+    "text": "#e8f4ff",
+    "muted": "#8aa3b5",
+    "panel": "#122433",
+    "buttonShape": "pill",
+    "buttonStyle": "fill"
+  },
+  "nodes": {}
+}

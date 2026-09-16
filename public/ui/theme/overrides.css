@@ -1,11 +1,9 @@
-/* Visual editor hooks. Game logic does not depend on these. */
+/* Theme hooks applied from the separate UI editor export. */
 
 :root {
   --btn-radius: 999px;
   --btn-primary-bg: var(--lime, #c8f542);
   --btn-primary-color: var(--lime-ink, #102000);
-  --field-radius: 12px;
-  --field-bg: rgba(18, 36, 51, 0.85);
 }
 
 .btn,
@@ -52,44 +50,12 @@ html.ui-style-soft .btn-primary {
   overflow: hidden;
 }
 
-.ui-art-slot.is-on,
-html.studio-preview .ui-art-slot {
+.ui-art-slot.is-on {
   display: flex;
 }
 
 .ui-art-placeholder {
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(8, 16, 24, 0.45);
-  border: 1.5px dashed rgba(255, 255, 255, 0.28);
-  border-radius: 18px;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ui-art-slot.is-on .ui-art-placeholder {
   display: none;
-}
-
-html.studio-preview [data-ui] {
-  cursor: pointer;
-  outline: 1.5px solid transparent;
-  outline-offset: 3px;
-}
-
-html.studio-preview [data-ui]:hover {
-  outline-color: rgba(13, 153, 255, 0.7);
-}
-
-html.studio-preview [data-ui].ui-selected {
-  outline: 2px solid #0d99ff;
-  outline-offset: 3px;
 }
 
 .join-row .field {
@@ -98,16 +64,4 @@ html.studio-preview [data-ui].ui-selected {
 
 .join-row .field span[hidden] {
   display: none;
-}
-
-html.studio-preview .studio-entry {
-  display: none !important;
-}
-
-.studio-entry {
-  display: inline-block;
-  margin-top: 1.5rem;
-  color: inherit;
-  opacity: 0.7;
-  font-size: 0.85rem;
 }
