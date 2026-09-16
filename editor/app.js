@@ -909,12 +909,13 @@ function defaultSpriteSheet() {
 }
 
 function addOverlay(kind) {
+  const existing = overlays();
   const item = {
     id: "ov" + Date.now(),
     kind,
     shape: kind === "sprite" ? "rect" : "circle",
-    x: 20,
-    y: 18,
+    x: 12 + (existing.length % 4) * 18,
+    y: 58 + Math.floor(existing.length / 4) * 14,
     w: kind === "sprite" ? 72 : 88,
     h: kind === "sprite" ? 72 : 88,
     fill: theme.global.accent,
