@@ -898,12 +898,15 @@ function defaultSpriteSheet() {
   canvas.height = size;
   const ctx = canvas.getContext("2d");
   for (let i = 0; i < frames; i++) {
-    ctx.fillStyle = "rgba(8,18,24,.35)";
+    ctx.fillStyle = "rgba(8,18,24,.55)";
     ctx.fillRect(i * size, 0, size, size);
-    ctx.fillStyle = theme.global.accent;
+    ctx.strokeStyle = theme.global.accent;
+    ctx.fillStyle = i === 3 ? theme.global.accent : "#f4ffe0";
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(i * size + size / 2, size / 2, 8 + i * 6, 0, Math.PI * 2);
+    ctx.arc(i * size + size / 2, size / 2, 10 + i * 5, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
   }
   return canvas.toDataURL("image/png");
 }
@@ -914,8 +917,8 @@ function addOverlay(kind) {
     id: "ov" + Date.now(),
     kind,
     shape: kind === "sprite" ? "rect" : "circle",
-    x: 12 + (existing.length % 4) * 18,
-    y: 58 + Math.floor(existing.length / 4) * 14,
+    x: 8 + (existing.length % 3) * 22,
+    y: 78 + Math.floor(existing.length / 3) * 10,
     w: kind === "sprite" ? 72 : 88,
     h: kind === "sprite" ? 72 : 88,
     fill: theme.global.accent,
