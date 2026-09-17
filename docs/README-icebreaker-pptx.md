@@ -1,14 +1,19 @@
 # Checktrail icebreaker deck
 
-`Checktrail-Icebreaker.pptx` is a 10-slide pitch about the game idea and how it works as a social icebreaker.
+`Checktrail-Icebreaker.pptx` is a 10-slide pitch about the game idea and how Icebreaker, Mirror Vote, and Feud unfreeze a room.
 
-Visuals match the live scribble UI: black ground, white ink, wobbly outlines, **Gochi Hand** titles, **Patrick Hand** body. Slides are rasterized with those fonts so PowerPoint still looks right if the machine does not have them installed.
+It matches the live editorial UI at [checktrail2.vercel.app](https://checktrail2.vercel.app/):
+
+- Paper background `#ebe7e0`, charcoal lines, cream panels
+- Display type **Syne**, body **DM Sans**
+- Red / blue / green mode dots
+- Geometric “guy” shapes in the margins
+
+**Every title, body, card, and shape is a real PowerPoint object** — click and edit. There are no baked-in slide images. Syne and DM Sans are embedded in the file.
 
 Rebuild:
 
 ```bash
-python3 -m pip install python-pptx pillow
+python3 -m pip install python-pptx lxml
 python3 docs/build_icebreaker_pptx.py
 ```
-
-Fonts live in `docs/fonts/` (Google Fonts, SIL Open Font License).
